@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .pagination import StandardResultsSetPagination
 from .permissions import (
     CanViewExaminationData,
     IsAdminOrTeacherOfClassroom,
@@ -98,11 +99,14 @@ class ExamDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class MarksListView(generics.ListCreateAPIView):
-    queryset = MarksManagement.objects.all().select_related(
-        "exam_name", "subject", "student__student"
+    queryset = (
+        MarksManagement.objects.all()
+        .select_related("exam_name", "subject", "student__student")
+        .order_by("id")
     )
     serializer_class = MarkSerializer
     permission_classes = [IsTeacherOfSubjectOrAdmin]
+    pagination_class = StandardResultsSetPagination
 
     def perform_create(self, serializer):
         """On create, enforce that the requesting teacher is allocated to
@@ -538,9 +542,14 @@ class GenerateClassResultsView(APIView):
 
 
 class ResultListView(generics.ListCreateAPIView):
-    queryset = Result.objects.all().select_related("student", "term", "academic_year")
+    queryset = (
+        Result.objects.all()
+        .select_related("student", "term", "academic_year")
+        .order_by("id")
+    )
     serializer_class = ResultSerializer
     permission_classes = [CanViewExaminationData]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         qs = super().get_queryset()

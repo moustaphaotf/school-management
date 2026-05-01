@@ -884,3 +884,71 @@ class ReadPermissionTests(TestCase):
         # teacher_a is allocated to classroom_a only — sees the one mark there
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["student"], self.enr_a.id)
+
+
+class PaginationTests(TestCase):
+    """Verify MarksListView pages results once page_size is exceeded."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.scale = GradeScale.objects.get(name="/20")
+        gl = GradeLevel.objects.create(id=900, name="Collège", grade_scale=cls.scale)
+        cl = ClassLevel.objects.create(id=901, name="6eme", grade_level=gl)
+        cls.classroom = _create_classroom(cl, "PG")
+        cls.classroom.capacity = 100  # default 40 is too small for 55 enrollments
+        cls.classroom.save()
+        cls.year = AcademicYear.objects.create(
+            name="2025-26", start_date=date(2025, 9, 1), active_year=True
+        )
+        cls.term = Term.objects.create(
+            name="T1",
+            academic_year=cls.year,
+            start_date=date(2025, 9, 1),
+            end_date=date(2025, 12, 20),
+        )
+        cls.subject = Subject.objects.create(name="Math")
+        cls.exam = _make_exam("DS1", cls.classroom, cls.term, out_of=20)
+
+        # 55 marks (above default page_size=50)
+        teacher = cls.classroom.class_teacher
+        for i in range(55):
+            enr = _enroll(cls.classroom, cls.year, f"S{i}")
+            MarksManagement.objects.create(
+                exam_name=cls.exam,
+                points_scored=10,
+                subject=cls.subject,
+                student=enr,
+                created_by=teacher,
+            )
+
+        cls.admin = CustomUser.objects.create_superuser(
+            email="admin-pg@test.gn", password="x"
+        )
+
+    def test_default_page_size_is_50_with_paginated_envelope(self):
+        client = APIClient()
+        client.force_authenticate(user=self.admin)
+        response = client.get("/api/examination/marks/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertIn("count", data)
+        self.assertIn("next", data)
+        self.assertIn("results", data)
+        self.assertEqual(data["count"], 55)
+        self.assertEqual(len(data["results"]), 50)
+        self.assertIsNotNone(data["next"])
+
+    def test_custom_page_size_query_param(self):
+        client = APIClient()
+        client.force_authenticate(user=self.admin)
+        response = client.get("/api/examination/marks/?page_size=10")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["results"]), 10)
+
+    def test_max_page_size_caps_at_200(self):
+        client = APIClient()
+        client.force_authenticate(user=self.admin)
+        response = client.get("/api/examination/marks/?page_size=500")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # We have 55 rows total; max_page_size=200 caps but doesn't add data
+        self.assertEqual(len(response.json()["results"]), 55)
