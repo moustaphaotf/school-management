@@ -82,7 +82,13 @@ class Result(models.Model):
     gpa = models.FloatField(null=True)
     cat_gpa = models.FloatField(null=True)
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE)
-    term = models.OneToOneField(Term, on_delete=models.SET_NULL, blank=True, null=True)
+    term = models.ForeignKey(Term, on_delete=models.SET_NULL, blank=True, null=True)
+    average = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    rank = models.IntegerField(null=True, blank=True)
+    mention = models.CharField(max_length=20, blank=True)
+
+    class Meta:
+        unique_together = ("student", "academic_year", "term")
 
     def __str__(self):
         return str(self.student)

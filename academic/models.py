@@ -148,6 +148,13 @@ class Teacher(models.Model):
 class GradeLevel(models.Model):
     id = models.IntegerField(unique=True, primary_key=True, verbose_name="Grade Level")
     name = models.CharField(max_length=150, unique=True)
+    grade_scale = models.ForeignKey(
+        "examination.GradeScale",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        help_text="Grading scale used for this level (e.g., /10 for primary, /20 for college/high-school).",
+    )
 
     class Meta:
         ordering = ("id",)
@@ -267,9 +274,15 @@ class AllocatedSubject(models.Model):
         Subject, on_delete=models.CASCADE, related_name="allocated_subjects"
     )
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE)
-    term = models.OneToOneField(Term, on_delete=models.SET_NULL, blank=True, null=True)
+    term = models.ForeignKey(Term, on_delete=models.SET_NULL, blank=True, null=True)
     class_room = models.ForeignKey(
         ClassRoom, on_delete=models.CASCADE, related_name="subjects"
+    )
+    coefficient = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=1.0,
+        help_text="Coefficient applied to this subject's average when computing the term general average.",
     )
     weekly_periods = models.IntegerField(help_text="Total number of periods per week.")
     max_daily_periods = models.IntegerField(
@@ -277,11 +290,17 @@ class AllocatedSubject(models.Model):
         help_text="Maximum number of periods allowed per day for this subject.",
     )
 
+    class Meta:
+        unique_together = (
+            "teacher_name",
+            "subject",
+            "academic_year",
+            "term",
+            "class_room",
+        )
+
     def __str__(self):
         return f"{self.teacher_name} - {self.subject} ({self.academic_year})"
-
-    def subjects_data(self):
-        return list(self.subject.all())
 
 
 class Parent(models.Model):
