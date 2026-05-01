@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils.translation import gettext as _
 
 
 from .models import (
@@ -49,7 +50,7 @@ class SubjectSerializer(serializers.ModelSerializer):
         # Add custom validation if needed (e.g., regex validation)
         if len(value) < 3:
             raise serializers.ValidationError(
-                "Subject code must be at least 3 characters."
+                _("Subject code must be at least 3 characters.")
             )
         return value
 
@@ -105,5 +106,5 @@ class StudentClassEnrollmentSerializer(serializers.ModelSerializer):
     def validate(self, data):
         classroom = data.get("classroom")
         if classroom.occupied_sits >= classroom.capacity:
-            raise serializers.ValidationError("This class is already full.")
+            raise serializers.ValidationError(_("This class is already full."))
         return data

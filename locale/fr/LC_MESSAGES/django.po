@@ -1,0 +1,1494 @@
+# French translations for school-management project.
+# Copyright (C) school-management contributors
+# This file is distributed under the same license as the school-management package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: school-management\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-01 17:00+0000\n"
+"PO-Revision-Date: 2026-05-01 17:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# ---------------------------------------------------------------------------
+# settings.py
+# ---------------------------------------------------------------------------
+
+msgid "French"
+msgstr "Français"
+
+msgid "English"
+msgstr "Anglais"
+
+# ---------------------------------------------------------------------------
+# administration/common_objs.py  –  choice-field display labels
+# ---------------------------------------------------------------------------
+
+msgid "One"
+msgstr "Un"
+
+msgid "Two"
+msgstr "Deux"
+
+msgid "Three"
+msgstr "Trois"
+
+msgid "Four"
+msgstr "Quatre"
+
+msgid "Male"
+msgstr "Masculin"
+
+msgid "Female"
+msgstr "Féminin"
+
+msgid "Other"
+msgstr "Autre"
+
+msgid "Islam"
+msgstr "Islam"
+
+msgid "Christian"
+msgstr "Chrétien"
+
+msgid "Father"
+msgstr "Père"
+
+msgid "Mother"
+msgstr "Mère"
+
+msgid "Guardian"
+msgstr "Tuteur"
+
+msgid "boarding school"
+msgstr "Internat"
+
+msgid "day school"
+msgstr "École de jour"
+
+msgid "boarding-day school"
+msgstr "Internat et externat"
+
+msgid "Boys School"
+msgstr "École de garçons"
+
+msgid "Girl School"
+msgstr "École de filles"
+
+msgid "Mixed"
+msgstr "Mixte"
+
+msgid "Government"
+msgstr "Public"
+
+msgid "Private"
+msgstr "Privé"
+
+msgid "Present"
+msgstr "Présent"
+
+msgid "Absent"
+msgstr "Absent"
+
+msgid "Holiday"
+msgstr "Jour férié"
+
+msgid "Sick"
+msgstr "Malade"
+
+# ---------------------------------------------------------------------------
+# administration/models.py – Article
+# ---------------------------------------------------------------------------
+
+msgid "title"
+msgstr "titre"
+
+msgid "content"
+msgstr "contenu"
+
+msgid "picture"
+msgstr "image"
+
+msgid "created by"
+msgstr "créé par"
+
+msgid "created at"
+msgstr "créé le"
+
+msgid "Article"
+msgstr "Article"
+
+msgid "Articles"
+msgstr "Articles"
+
+# ---------------------------------------------------------------------------
+# administration/models.py – CarouselImage
+# ---------------------------------------------------------------------------
+
+msgid "description"
+msgstr "description"
+
+msgid "Carousel Image"
+msgstr "Image du carrousel"
+
+msgid "Carousel Images"
+msgstr "Images du carrousel"
+
+# ---------------------------------------------------------------------------
+# administration/models.py – AccessLog
+# ---------------------------------------------------------------------------
+
+msgid "user"
+msgstr "utilisateur"
+
+msgid "user agent"
+msgstr "agent utilisateur"
+
+msgid "User agent. We can use this to determine operating system and browser in use."
+msgstr "Agent utilisateur. Permet de déterminer le système d'exploitation et le navigateur utilisé."
+
+msgid "date"
+msgstr "date"
+
+msgid "IP address"
+msgstr "adresse IP"
+
+msgid "usage"
+msgstr "usage"
+
+msgid "Access Log"
+msgstr "Journal d'accès"
+
+msgid "Access Logs"
+msgstr "Journaux d'accès"
+
+# ---------------------------------------------------------------------------
+# administration/models.py – School
+# ---------------------------------------------------------------------------
+
+msgid "active"
+msgstr "actif"
+
+msgid "DANGER..!!!! If marked, this will be the default School Information System Wide..."
+msgstr "DANGER !!!! Si coché, ceci sera le système d'information scolaire par défaut."
+
+msgid "name"
+msgstr "nom"
+
+msgid "address"
+msgstr "adresse"
+
+msgid "school type"
+msgstr "type d'école"
+
+msgid "students gender"
+msgstr "genre des élèves"
+
+msgid "ownership"
+msgstr "propriété"
+
+msgid "mission"
+msgstr "mission"
+
+msgid "vision"
+msgstr "vision"
+
+msgid "telephone"
+msgstr "téléphone"
+
+msgid "school email"
+msgstr "e-mail de l'école"
+
+msgid "school logo"
+msgstr "logo de l'école"
+
+msgid "School"
+msgstr "École"
+
+msgid "Schools"
+msgstr "Écoles"
+
+# ---------------------------------------------------------------------------
+# administration/models.py – Day
+# ---------------------------------------------------------------------------
+
+msgid "Monday"
+msgstr "Lundi"
+
+msgid "Tuesday"
+msgstr "Mardi"
+
+msgid "Wednesday"
+msgstr "Mercredi"
+
+msgid "Thursday"
+msgstr "Jeudi"
+
+msgid "Friday"
+msgstr "Vendredi"
+
+msgid "Saturday"
+msgstr "Samedi"
+
+msgid "Sunday"
+msgstr "Dimanche"
+
+msgid "day"
+msgstr "jour"
+
+msgid "Day"
+msgstr "Jour"
+
+msgid "Days"
+msgstr "Jours"
+
+# ---------------------------------------------------------------------------
+# administration/models.py – AcademicYear
+# ---------------------------------------------------------------------------
+
+msgid "start date"
+msgstr "date de début"
+
+msgid "end date"
+msgstr "date de fin"
+
+msgid "active year"
+msgstr "année active"
+
+msgid "DANGER!! This is the current school year. There can only be one and setting this will remove it from other years. If you want to change the active year, click Admin, Change School Year."
+msgstr "DANGER !! Il s'agit de l'année scolaire en cours. Il ne peut y en avoir qu'une seule. Si vous souhaitez changer l'année active, cliquez sur Admin > Changer l'année scolaire."
+
+msgid "End date must be after start date."
+msgstr "La date de fin doit être postérieure à la date de début."
+
+msgid "Academic Year"
+msgstr "Année scolaire"
+
+msgid "Academic Years"
+msgstr "Années scolaires"
+
+# ---------------------------------------------------------------------------
+# administration/models.py – Term
+# ---------------------------------------------------------------------------
+
+msgid "academic year"
+msgstr "année scolaire"
+
+msgid "default term fee"
+msgstr "frais de scolarité par défaut"
+
+msgid "Term"
+msgstr "Trimestre"
+
+msgid "Terms"
+msgstr "Trimestres"
+
+msgid "e.g., Term 1, Term 2"
+msgstr "ex. : Trimestre 1, Trimestre 2"
+
+# ---------------------------------------------------------------------------
+# administration/models.py – SchoolEvent
+# ---------------------------------------------------------------------------
+
+msgid "The term this event belongs to"
+msgstr "Le trimestre auquel appartient cet événement"
+
+msgid "Name of the event (e.g., Midterm Exams, Eid Holiday)"
+msgstr "Nom de l'événement (ex. : Examens de mi-trimestre, Fête de l'Aïd)"
+
+msgid "event type"
+msgstr "type d'événement"
+
+msgid "Optional details about the event"
+msgstr "Détails optionnels sur l'événement"
+
+msgid "Start date must be within the term's duration."
+msgstr "La date de début doit se situer dans la durée du trimestre."
+
+msgid "End date must be within the term's duration."
+msgstr "La date de fin doit se situer dans la durée du trimestre."
+
+msgid "Examination Period"
+msgstr "Période d'examens"
+
+msgid "Graduation Day"
+msgstr "Jour de remise des diplômes"
+
+msgid "Student Leave"
+msgstr "Congé scolaire"
+
+msgid "Other Event"
+msgstr "Autre événement"
+
+msgid "School Event"
+msgstr "Événement scolaire"
+
+msgid "School Events"
+msgstr "Événements scolaires"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – Department
+# ---------------------------------------------------------------------------
+
+msgid "order rank"
+msgstr "rang d'ordre"
+
+msgid "Rank for subject reports"
+msgstr "Rang pour les relevés de notes par matière"
+
+msgid "Department"
+msgstr "Département"
+
+msgid "Departments"
+msgstr "Départements"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – Subject
+# ---------------------------------------------------------------------------
+
+msgid "subject code"
+msgstr "code de la matière"
+
+msgid "is selectable"
+msgstr "est sélectionnable"
+
+msgid "Select if subject is optional"
+msgstr "Cocher si la matière est optionnelle"
+
+msgid "graded"
+msgstr "noté"
+
+msgid "Teachers can submit grades"
+msgstr "Les enseignants peuvent soumettre des notes"
+
+msgid "department"
+msgstr "département"
+
+msgid "Subject"
+msgstr "Matière"
+
+msgid "Subjects"
+msgstr "Matières"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – Teacher
+# ---------------------------------------------------------------------------
+
+msgid "username"
+msgstr "nom d'utilisateur"
+
+msgid "first name"
+msgstr "prénom"
+
+msgid "middle name"
+msgstr "deuxième prénom"
+
+msgid "last name"
+msgstr "nom de famille"
+
+msgid "gender"
+msgstr "genre"
+
+msgid "email"
+msgstr "e-mail"
+
+msgid "employee ID"
+msgstr "identifiant employé"
+
+msgid "TIN number"
+msgstr "numéro TIN"
+
+msgid "NSSF number"
+msgstr "numéro NSSF"
+
+msgid "short name"
+msgstr "abréviation"
+
+msgid "salary"
+msgstr "salaire"
+
+msgid "unpaid salary"
+msgstr "salaire impayé"
+
+msgid "subject specialization"
+msgstr "spécialisation en matières"
+
+msgid "national ID"
+msgstr "carte nationale d'identité"
+
+msgid "phone number"
+msgstr "numéro de téléphone"
+
+msgid "alternative email"
+msgstr "e-mail alternatif"
+
+msgid "date of birth"
+msgstr "date de naissance"
+
+msgid "designation"
+msgstr "fonction"
+
+msgid "image"
+msgstr "photo"
+
+msgid "inactive"
+msgstr "inactif"
+
+msgid "Teacher"
+msgstr "Enseignant"
+
+msgid "Teachers"
+msgstr "Enseignants"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – GradeLevel
+# ---------------------------------------------------------------------------
+
+msgid "grade scale"
+msgstr "barème de notation"
+
+msgid "Grading scale used for this level (e.g., /10 for primary, /20 for college/high-school)."
+msgstr "Barème de notation utilisé pour ce niveau (ex. : /10 pour le primaire, /20 pour le collège/lycée)."
+
+msgid "Grade Level"
+msgstr "Niveau scolaire"
+
+msgid "Grade Levels"
+msgstr "Niveaux scolaires"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – ClassLevel
+# ---------------------------------------------------------------------------
+
+msgid "grade level"
+msgstr "niveau scolaire"
+
+msgid "Class Level"
+msgstr "Classe"
+
+msgid "Class Levels"
+msgstr "Classes"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – ClassYear
+# ---------------------------------------------------------------------------
+
+msgid "year"
+msgstr "année"
+
+msgid "Example 2020"
+msgstr "Exemple : 2020"
+
+msgid "full name"
+msgstr "nom complet"
+
+msgid "Example Class of 2020"
+msgstr "Exemple : Promotion 2020"
+
+msgid "Class Year"
+msgstr "Promotion"
+
+msgid "Class Years"
+msgstr "Promotions"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – ReasonLeft
+# ---------------------------------------------------------------------------
+
+msgid "reason"
+msgstr "motif"
+
+msgid "Reason Left"
+msgstr "Motif de départ"
+
+msgid "Reasons Left"
+msgstr "Motifs de départ"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – Stream
+# ---------------------------------------------------------------------------
+
+msgid "Stream"
+msgstr "Filière"
+
+msgid "Streams"
+msgstr "Filières"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – ClassRoom
+# ---------------------------------------------------------------------------
+
+msgid "class level"
+msgstr "classe"
+
+msgid "stream"
+msgstr "filière"
+
+msgid "class teacher"
+msgstr "professeur principal"
+
+msgid "capacity"
+msgstr "capacité"
+
+msgid "occupied sits"
+msgstr "places occupées"
+
+msgid "Occupied sits cannot exceed the capacity."
+msgstr "Le nombre de places occupées ne peut pas dépasser la capacité."
+
+msgid "Classroom"
+msgstr "Salle de classe"
+
+msgid "Classrooms"
+msgstr "Salles de classe"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – Topic / SubTopic
+# ---------------------------------------------------------------------------
+
+msgid "subject"
+msgstr "matière"
+
+msgid "topic"
+msgstr "sujet"
+
+msgid "Topic"
+msgstr "Sujet"
+
+msgid "Topics"
+msgstr "Sujets"
+
+msgid "Sub-Topic"
+msgstr "Sous-sujet"
+
+msgid "Sub-Topics"
+msgstr "Sous-sujets"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – AllocatedSubject
+# ---------------------------------------------------------------------------
+
+msgid "teacher"
+msgstr "enseignant"
+
+msgid "classroom"
+msgstr "salle de classe"
+
+msgid "term"
+msgstr "trimestre"
+
+msgid "coefficient"
+msgstr "coefficient"
+
+msgid "Coefficient applied to this subject's average when computing the term general average."
+msgstr "Coefficient appliqué à la moyenne de cette matière lors du calcul de la moyenne générale du trimestre."
+
+msgid "weekly periods"
+msgstr "périodes hebdomadaires"
+
+msgid "Total number of periods per week."
+msgstr "Nombre total de périodes par semaine."
+
+msgid "max daily periods"
+msgstr "périodes journalières maximales"
+
+msgid "Maximum number of periods allowed per day for this subject."
+msgstr "Nombre maximum de périodes autorisées par jour pour cette matière."
+
+msgid "Allocated Subject"
+msgstr "Matière attribuée"
+
+msgid "Allocated Subjects"
+msgstr "Matières attribuées"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – Parent
+# ---------------------------------------------------------------------------
+
+msgid "First Name"
+msgstr "Prénom"
+
+msgid "Middle Name"
+msgstr "Deuxième prénom"
+
+msgid "Last Name"
+msgstr "Nom de famille"
+
+msgid "parent type"
+msgstr "type de parent"
+
+msgid "Personal phone number"
+msgstr "Numéro de téléphone personnel"
+
+msgid "occupation"
+msgstr "profession"
+
+msgid "Current occupation"
+msgstr "Profession actuelle"
+
+msgid "monthly income"
+msgstr "revenu mensuel"
+
+msgid "Parent's average monthly income"
+msgstr "Revenu mensuel moyen du parent"
+
+msgid "single parent"
+msgstr "parent isolé"
+
+msgid "Is he/she a single parent"
+msgstr "Est-il/elle un parent isolé ?"
+
+msgid "Personal email"
+msgstr "Adresse e-mail personnelle"
+
+msgid "Parent contact is required."
+msgstr "Le contact du parent est obligatoire."
+
+msgid "Parent"
+msgstr "Parent"
+
+msgid "Parents"
+msgstr "Parents"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – Student
+# ---------------------------------------------------------------------------
+
+msgid "graduation date"
+msgstr "date de diplôme"
+
+msgid "class of year"
+msgstr "promotion"
+
+msgid "date dismissed"
+msgstr "date de renvoi"
+
+msgid "reason left"
+msgstr "motif de départ"
+
+msgid "religion"
+msgstr "religion"
+
+msgid "region"
+msgstr "région"
+
+msgid "city"
+msgstr "ville"
+
+msgid "street"
+msgstr "rue"
+
+msgid "blood group"
+msgstr "groupe sanguin"
+
+msgid "parent / guardian"
+msgstr "parent / tuteur"
+
+msgid "parent contact"
+msgstr "contact du parent"
+
+msgid "admission date"
+msgstr "date d'admission"
+
+msgid "admission number"
+msgstr "numéro d'admission"
+
+msgid "PREMS number"
+msgstr "numéro PREMS"
+
+msgid "Std VII number"
+msgstr "numéro Std VII"
+
+msgid "siblings"
+msgstr "frères et sœurs"
+
+msgid "cached GPA"
+msgstr "moyenne générale en cache"
+
+msgid "Student"
+msgstr "Élève"
+
+msgid "Students"
+msgstr "Élèves"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – StudentClassEnrollment
+# ---------------------------------------------------------------------------
+
+msgid "The classroom '%(classroom)s' does not match the student's class level '%(level)s'."
+msgstr "La classe « %(classroom)s » ne correspond pas au niveau scolaire de l'élève « %(level)s »."
+
+msgid "The classroom '%(classroom)s' has reached its maximum capacity."
+msgstr "La classe « %(classroom)s » a atteint sa capacité maximale."
+
+msgid "The student '%(student)s' is already assigned to this class for the academic year '%(year)s'."
+msgstr "L'élève « %(student)s » est déjà inscrit dans cette classe pour l'année scolaire « %(year)s »."
+
+msgid "This class has reached its maximum capacity."
+msgstr "Cette classe a atteint sa capacité maximale."
+
+msgid "Cannot have negative occupied sits."
+msgstr "Le nombre de places occupées ne peut pas être négatif."
+
+msgid "Student Class Enrollment"
+msgstr "Inscription en classe"
+
+msgid "Student Class Enrollments"
+msgstr "Inscriptions en classe"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – StudentsMedicalHistory
+# ---------------------------------------------------------------------------
+
+msgid "history"
+msgstr "historique"
+
+msgid "file"
+msgstr "fichier"
+
+msgid "At least one of 'history' or 'file' must be provided."
+msgstr "Au moins un des champs « historique » ou « fichier » doit être renseigné."
+
+msgid "Student Medical History"
+msgstr "Historique médical de l'élève"
+
+msgid "Student Medical Histories"
+msgstr "Historiques médicaux des élèves"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – StudentsPreviousAcademicHistory
+# ---------------------------------------------------------------------------
+
+msgid "former school"
+msgstr "ancien établissement"
+
+msgid "Former school name"
+msgstr "Nom de l'ancien établissement"
+
+msgid "last GPA"
+msgstr "dernière moyenne générale"
+
+msgid "notes"
+msgstr "notes"
+
+msgid "Indicate student's academic performance according to your observation"
+msgstr "Indiquer les performances scolaires de l'élève selon votre observation"
+
+msgid "academic record"
+msgstr "dossier scolaire"
+
+msgid "Former school name is required."
+msgstr "Le nom de l'ancien établissement est obligatoire."
+
+msgid "Student Previous Academic History"
+msgstr "Historique scolaire antérieur de l'élève"
+
+msgid "Student Previous Academic Histories"
+msgstr "Historiques scolaires antérieurs des élèves"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – Dormitory
+# ---------------------------------------------------------------------------
+
+msgid "occupied beds"
+msgstr "lits occupés"
+
+msgid "captain"
+msgstr "chef de dortoir"
+
+msgid "Dormitory"
+msgstr "Dortoir"
+
+msgid "Dormitories"
+msgstr "Dortoirs"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – DormitoryAllocation
+# ---------------------------------------------------------------------------
+
+msgid "dormitory"
+msgstr "dortoir"
+
+msgid "date from"
+msgstr "date de début"
+
+msgid "date till"
+msgstr "date de fin"
+
+msgid "%(dorm)s has no available beds."
+msgstr "« %(dorm)s » n'a pas de lits disponibles."
+
+msgid "Dormitory Allocation"
+msgstr "Attribution de dortoir"
+
+msgid "Dormitory Allocations"
+msgstr "Attributions de dortoir"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – StudentFile
+# ---------------------------------------------------------------------------
+
+msgid "File size must be under 10MB."
+msgstr "La taille du fichier doit être inférieure à 10 Mo."
+
+msgid "Student File"
+msgstr "Fichier de l'élève"
+
+msgid "Student Files"
+msgstr "Fichiers des élèves"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – StudentHealthRecord
+# ---------------------------------------------------------------------------
+
+msgid "record"
+msgstr "dossier"
+
+msgid "Health record must contain more information."
+msgstr "Le dossier de santé doit contenir davantage d'informations."
+
+msgid "Student Health Record"
+msgstr "Dossier de santé de l'élève"
+
+msgid "Student Health Records"
+msgstr "Dossiers de santé des élèves"
+
+# ---------------------------------------------------------------------------
+# academic/models.py – MessageToParent / MessageToTeacher
+# ---------------------------------------------------------------------------
+
+msgid "message"
+msgstr "message"
+
+msgid "Message to be shown to Parents."
+msgstr "Message à afficher aux parents."
+
+msgid "End date cannot be before the start date."
+msgstr "La date de fin ne peut pas être antérieure à la date de début."
+
+msgid "Message to Parent"
+msgstr "Message aux parents"
+
+msgid "Messages to Parents"
+msgstr "Messages aux parents"
+
+msgid "Message to be shown to Teachers."
+msgstr "Message à afficher aux enseignants."
+
+msgid "Message to Teacher"
+msgstr "Message aux enseignants"
+
+msgid "Messages to Teachers"
+msgstr "Messages aux enseignants"
+
+# ---------------------------------------------------------------------------
+# users/models.py – CustomUser
+# ---------------------------------------------------------------------------
+
+msgid "email address"
+msgstr "adresse e-mail"
+
+msgid "User"
+msgstr "Utilisateur"
+
+msgid "Users"
+msgstr "Utilisateurs"
+
+# ---------------------------------------------------------------------------
+# users/models.py – Accountant
+# ---------------------------------------------------------------------------
+
+msgid "Personal Email apart from the one given by the school"
+msgstr "Adresse e-mail personnelle, différente de celle fournie par l'établissement"
+
+msgid "Accountant"
+msgstr "Comptable"
+
+msgid "Accountants"
+msgstr "Comptables"
+
+# ---------------------------------------------------------------------------
+# users/admin.py
+# ---------------------------------------------------------------------------
+
+msgid "Permissions"
+msgstr "Permissions"
+
+# ---------------------------------------------------------------------------
+# finance/models.py – DebtRecord
+# ---------------------------------------------------------------------------
+
+msgid "student"
+msgstr "élève"
+
+msgid "amount added"
+msgstr "montant ajouté"
+
+msgid "amount paid"
+msgstr "montant payé"
+
+msgid "note"
+msgstr "remarque"
+
+msgid "date updated"
+msgstr "date de mise à jour"
+
+msgid "is reversed"
+msgstr "annulé"
+
+msgid "reversed on"
+msgstr "annulé le"
+
+msgid "Payment must be positive."
+msgstr "Le montant du paiement doit être positif."
+
+msgid "Cannot pay more than the remaining balance."
+msgstr "Le paiement ne peut pas dépasser le solde restant."
+
+msgid "Debt Record"
+msgstr "Dossier de dette"
+
+msgid "Debt Records"
+msgstr "Dossiers de dettes"
+
+# ---------------------------------------------------------------------------
+# finance/models.py – ReceiptAllocation / PaymentAllocation
+# ---------------------------------------------------------------------------
+
+msgid "abbreviation"
+msgstr "abréviation"
+
+msgid "Receipt Allocation"
+msgstr "Affectation de reçu"
+
+msgid "Receipt Allocations"
+msgstr "Affectations de reçus"
+
+msgid "Payment Allocation"
+msgstr "Affectation de paiement"
+
+msgid "Payment Allocations"
+msgstr "Affectations de paiements"
+
+# ---------------------------------------------------------------------------
+# finance/models.py – Receipt
+# ---------------------------------------------------------------------------
+
+msgid "receipt number"
+msgstr "numéro de reçu"
+
+msgid "payer"
+msgstr "payeur"
+
+msgid "paid for"
+msgstr "payé pour"
+
+msgid "amount"
+msgstr "montant"
+
+msgid "paid through"
+msgstr "moyen de paiement"
+
+msgid "payment date"
+msgstr "date de paiement"
+
+msgid "status"
+msgstr "statut"
+
+msgid "received by"
+msgstr "reçu par"
+
+msgid "Amount must be a positive value."
+msgstr "Le montant doit être une valeur positive."
+
+msgid "Receipt"
+msgstr "Reçu"
+
+msgid "Receipts"
+msgstr "Reçus"
+
+# ---------------------------------------------------------------------------
+# finance/models.py – Payment
+# ---------------------------------------------------------------------------
+
+msgid "payment number"
+msgstr "numéro de paiement"
+
+msgid "paid to"
+msgstr "payé à"
+
+msgid "paid by"
+msgstr "payé par"
+
+msgid "Payment"
+msgstr "Paiement"
+
+msgid "Payments"
+msgstr "Paiements"
+
+# ---------------------------------------------------------------------------
+# finance/models.py – PaymentRecord
+# ---------------------------------------------------------------------------
+
+msgid "debt record"
+msgstr "dossier de dette"
+
+msgid "receipt"
+msgstr "reçu"
+
+msgid "method"
+msgstr "méthode"
+
+msgid "reference"
+msgstr "référence"
+
+msgid "paid on"
+msgstr "payé le"
+
+msgid "processed by"
+msgstr "traité par"
+
+msgid "Payment amount must be positive."
+msgstr "Le montant du paiement doit être positif."
+
+msgid "Payment exceeds remaining balance for this debt."
+msgstr "Le paiement dépasse le solde restant pour cette dette."
+
+msgid "Payment Record"
+msgstr "Enregistrement de paiement"
+
+msgid "Payment Records"
+msgstr "Enregistrements de paiements"
+
+# ---------------------------------------------------------------------------
+# attendance/models.py – AttendanceStatus
+# ---------------------------------------------------------------------------
+
+msgid "code"
+msgstr "code"
+
+msgid "excused"
+msgstr "justifié"
+
+msgid "absent"
+msgstr "absent"
+
+msgid "late"
+msgstr "en retard"
+
+msgid "half day"
+msgstr "demi-journée"
+
+msgid "\"Present\" will not be saved but may show as an option for teachers."
+msgstr "« Présent » ne sera pas enregistré mais peut s'afficher comme option pour les enseignants."
+
+msgid "Short code used on attendance reports. Example: 'A' might be the code for 'Absent'."
+msgstr "Code court utilisé dans les rapports de présence. Exemple : « A » pourrait être le code pour « Absent »."
+
+msgid "Used for different types of absent statuses."
+msgstr "Utilisé pour différents types de statuts d'absence."
+
+msgid "Used for tracking late statuses."
+msgstr "Utilisé pour suivre les retards."
+
+msgid "Indicates half-day attendance. Do not check absent, otherwise it will double count."
+msgstr "Indique une présence demi-journée. Ne pas cocher « absent », sinon le comptage sera doublé."
+
+msgid "Attendance Status"
+msgstr "Statut de présence"
+
+msgid "Attendance Statuses"
+msgstr "Statuts de présence"
+
+# ---------------------------------------------------------------------------
+# attendance/models.py – TeachersAttendance
+# ---------------------------------------------------------------------------
+
+msgid "time in"
+msgstr "heure d'arrivée"
+
+msgid "time out"
+msgstr "heure de départ"
+
+msgid "Teacher Attendance"
+msgstr "Présence des enseignants"
+
+msgid "Teacher Attendances"
+msgstr "Présences des enseignants"
+
+# ---------------------------------------------------------------------------
+# attendance/models.py – StudentAttendance
+# ---------------------------------------------------------------------------
+
+msgid "Student Attendance"
+msgstr "Présence des élèves"
+
+msgid "Student Attendances"
+msgstr "Présences des élèves"
+
+# ---------------------------------------------------------------------------
+# attendance/models.py – PeriodAttendance
+# ---------------------------------------------------------------------------
+
+msgid "period"
+msgstr "période"
+
+msgid "reason for absence"
+msgstr "motif d'absence"
+
+msgid "Period Attendance"
+msgstr "Présence par période"
+
+msgid "Period Attendances"
+msgstr "Présences par période"
+
+# ---------------------------------------------------------------------------
+# examination/models.py – GradeScale
+# ---------------------------------------------------------------------------
+
+msgid "Grade Scale"
+msgstr "Barème de notation"
+
+msgid "Grade Scales"
+msgstr "Barèmes de notation"
+
+# ---------------------------------------------------------------------------
+# examination/models.py – GradeScaleRule
+# ---------------------------------------------------------------------------
+
+msgid "minimum grade"
+msgstr "note minimale"
+
+msgid "maximum grade"
+msgstr "note maximale"
+
+msgid "letter grade"
+msgstr "note alphabétique"
+
+msgid "numeric scale"
+msgstr "échelle numérique"
+
+msgid "Either a letter grade or numeric scale must be provided."
+msgstr "Une note alphabétique ou une échelle numérique doit être fournie."
+
+msgid "If a letter grade is provided, numeric scale must also be provided."
+msgstr "Si une note alphabétique est fournie, l'échelle numérique doit également l'être."
+
+msgid "If a numeric scale is provided, a letter grade must also be provided."
+msgstr "Si une échelle numérique est fournie, une note alphabétique doit également l'être."
+
+msgid "min_grade must be less than max_grade."
+msgstr "La note minimale doit être inférieure à la note maximale."
+
+msgid "Grade Scale Rule"
+msgstr "Règle de barème"
+
+msgid "Grade Scale Rules"
+msgstr "Règles de barème"
+
+# ---------------------------------------------------------------------------
+# examination/models.py – Result
+# ---------------------------------------------------------------------------
+
+msgid "GPA"
+msgstr "Moyenne générale"
+
+msgid "CAT GPA"
+msgstr "Moyenne des contrôles continus"
+
+msgid "average"
+msgstr "moyenne"
+
+msgid "rank"
+msgstr "rang"
+
+msgid "mention"
+msgstr "mention"
+
+msgid "GPA must be between 0.0 and 4.0."
+msgstr "La moyenne générale (GPA) doit être comprise entre 0,0 et 4,0."
+
+msgid "CAT GPA must be between 0.0 and 4.0."
+msgstr "La moyenne des contrôles continus (CAT GPA) doit être comprise entre 0,0 et 4,0."
+
+msgid "Result"
+msgstr "Résultat"
+
+msgid "Results"
+msgstr "Résultats"
+
+# ---------------------------------------------------------------------------
+# examination/models.py – ExaminationListHandler
+# ---------------------------------------------------------------------------
+
+msgid "out of"
+msgstr "sur"
+
+msgid "classrooms"
+msgstr "salles de classe"
+
+msgid "comments"
+msgstr "commentaires"
+
+msgid "Term this exam belongs to. Used to aggregate marks for term results."
+msgstr "Trimestre auquel appartient cet examen. Utilisé pour agréger les notes des résultats trimestriels."
+
+msgid "Comments Regarding Exam"
+msgstr "Commentaires concernant l'examen"
+
+msgid "created on"
+msgstr "créé le"
+
+msgid "Start date cannot be later than end date."
+msgstr "La date de début ne peut pas être postérieure à la date de fin."
+
+msgid "Examination"
+msgstr "Examen"
+
+msgid "Examinations"
+msgstr "Examens"
+
+# ---------------------------------------------------------------------------
+# examination/models.py – MarksManagement
+# ---------------------------------------------------------------------------
+
+msgid "examination"
+msgstr "examen"
+
+msgid "points scored"
+msgstr "points obtenus"
+
+msgid "date / time"
+msgstr "date / heure"
+
+msgid "Points scored must be between 0 and %(out_of)s."
+msgstr "Le score doit être compris entre 0 et %(out_of)s."
+
+msgid "Mark"
+msgstr "Note"
+
+msgid "Marks"
+msgstr "Notes"
+
+# ---------------------------------------------------------------------------
+# schedule/models.py – Period
+# ---------------------------------------------------------------------------
+
+msgid "day of week"
+msgstr "jour de la semaine"
+
+msgid "start time"
+msgstr "heure de début"
+
+msgid "end time"
+msgstr "heure de fin"
+
+msgid "Period"
+msgstr "Période"
+
+msgid "Periods"
+msgstr "Périodes"
+
+# ---------------------------------------------------------------------------
+# notes/models.py – Assignment
+# ---------------------------------------------------------------------------
+
+msgid "Assignment"
+msgstr "Devoir"
+
+msgid "Assignments"
+msgstr "Devoirs"
+
+# ---------------------------------------------------------------------------
+# notes/models.py – GradedAssignment
+# ---------------------------------------------------------------------------
+
+msgid "assignment"
+msgstr "devoir"
+
+msgid "grade"
+msgstr "note"
+
+msgid "Graded Assignment"
+msgstr "Devoir noté"
+
+msgid "Graded Assignments"
+msgstr "Devoirs notés"
+
+# ---------------------------------------------------------------------------
+# notes/models.py – Choice
+# ---------------------------------------------------------------------------
+
+msgid "Choice"
+msgstr "Choix"
+
+msgid "Choices"
+msgstr "Choix"
+
+# ---------------------------------------------------------------------------
+# notes/models.py – Question
+# ---------------------------------------------------------------------------
+
+msgid "question"
+msgstr "question"
+
+msgid "choices"
+msgstr "choix"
+
+msgid "answer"
+msgstr "réponse"
+
+msgid "order"
+msgstr "ordre"
+
+msgid "Question"
+msgstr "Question"
+
+msgid "Questions"
+msgstr "Questions"
+
+# ---------------------------------------------------------------------------
+# notes/models.py – SpecificExplanations
+# ---------------------------------------------------------------------------
+
+msgid "sub-topic"
+msgstr "sous-sujet"
+
+msgid "explanation"
+msgstr "explication"
+
+msgid "examples"
+msgstr "exemples"
+
+msgid "Specific Explanation"
+msgstr "Explication spécifique"
+
+msgid "Specific Explanations"
+msgstr "Explications spécifiques"
+
+# ---------------------------------------------------------------------------
+# notes/models.py – Concept
+# ---------------------------------------------------------------------------
+
+msgid "list of explanations"
+msgstr "liste d'explications"
+
+msgid "Concept"
+msgstr "Concept"
+
+msgid "Concepts"
+msgstr "Concepts"
+
+# ---------------------------------------------------------------------------
+# notes/models.py – Note
+# ---------------------------------------------------------------------------
+
+msgid "Note"
+msgstr "Note de cours"
+
+msgid "Notes"
+msgstr "Notes de cours"
+
+# ---------------------------------------------------------------------------
+# sis/models.py – StudentBulkUpload
+# ---------------------------------------------------------------------------
+
+msgid "date uploaded"
+msgstr "date de téléversement"
+
+msgid "CSV file"
+msgstr "Fichier CSV"
+
+msgid "Student Bulk Upload"
+msgstr "Import groupé d'élèves"
+
+msgid "Student Bulk Uploads"
+msgstr "Imports groupés d'élèves"
+
+# ---------------------------------------------------------------------------
+# academic/serializers.py
+# ---------------------------------------------------------------------------
+
+msgid "Subject code must be at least 3 characters."
+msgstr "Le code de la matière doit comporter au moins 3 caractères."
+
+msgid "This class is already full."
+msgstr "Cette classe est déjà complète."
+
+# ---------------------------------------------------------------------------
+# users/serializers.py
+# ---------------------------------------------------------------------------
+
+msgid "An accountant with this email already exists."
+msgstr "Un comptable avec cette adresse e-mail existe déjà."
+
+msgid "An accountant with this phone number already exists."
+msgstr "Un comptable avec ce numéro de téléphone existe déjà."
+
+msgid "A teacher with this email already exists."
+msgstr "Un enseignant avec cette adresse e-mail existe déjà."
+
+msgid "A teacher with this phone number already exists."
+msgstr "Un enseignant avec ce numéro de téléphone existe déjà."
+
+msgid "Subject specialization should be a list of subject names."
+msgstr "La spécialisation en matières doit être une liste de noms de matières."
+
+msgid "The following subjects do not exist: %(subjects)s"
+msgstr "Les matières suivantes n'existent pas : %(subjects)s"
+
+msgid "A parent with this email already exists."
+msgstr "Un parent avec cette adresse e-mail existe déjà."
+
+msgid "A parent with this phone number already exists."
+msgstr "Un parent avec ce numéro de téléphone existe déjà."
+
+# ---------------------------------------------------------------------------
+# finance/serializers.py  (message reused from model – see Receipt section above)
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# examination/serializers.py
+# ---------------------------------------------------------------------------
+
+msgid "ends_date must be on or after start_date."
+msgstr "La date de fin doit être égale ou postérieure à la date de début."
+
+msgid "out_of must be a positive integer."
+msgstr "La valeur maximale doit être un entier positif."
+
+msgid "points_scored must be between 0 and %(out_of)s."
+msgstr "Le score doit être compris entre 0 et %(out_of)s."
+
+msgid "points_scored %(scored)s exceeds out_of %(out_of)s"
+msgstr "Le score %(scored)s dépasse la valeur maximale %(out_of)s."
+
+# ---------------------------------------------------------------------------
+# sis/serializers.py
+# ---------------------------------------------------------------------------
+
+msgid "Missing 'class_level' field."
+msgstr "Le champ « classe » est manquant."
+
+msgid "Class level '%(level)s' does not exist."
+msgstr "Le niveau scolaire « %(level)s » n'existe pas."
+
+msgid "Class year '%(year)s' does not exist."
+msgstr "L'année de classe « %(year)s » n'existe pas."
+
+# ---------------------------------------------------------------------------
+# academic/validators.py
+# ---------------------------------------------------------------------------
+
+msgid "Enter a valid username. This value must follow the pattern: letters/three alphanumeric characters/four digits."
+msgstr "Saisissez un nom d'utilisateur valide. Cette valeur doit respecter le format : lettres/trois caractères alphanumériques/quatre chiffres."
+
+# ---------------------------------------------------------------------------
+# Already included above but kept for completeness
+# (duplicate msgids are handled by gettext by using the last occurrence)
+# ---------------------------------------------------------------------------

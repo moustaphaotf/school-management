@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 from .models import (
     Receipt,
@@ -64,7 +65,7 @@ class ReceiptSerializer(serializers.ModelSerializer):
 
     def validate_amount(self, value):
         if value <= 0:
-            raise serializers.ValidationError("Amount must be a positive value.")
+            raise serializers.ValidationError(_("Amount must be a positive value."))
         return value
 
     def create(self, validated_data):
@@ -154,7 +155,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     def validate_amount(self, value):
         if value <= 0:
-            raise serializers.ValidationError("Amount must be a positive value.")
+            raise serializers.ValidationError(_("Amount must be a positive value."))
         return value
 
 

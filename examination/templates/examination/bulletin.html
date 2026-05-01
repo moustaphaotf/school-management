@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Bulletin {{ b.student_name }} - {{ b.term }}</title>
+<style>
+  @page { size: A4; margin: 1.5cm; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 11pt; color: #111; }
+  h1 { text-align: center; font-size: 14pt; margin-bottom: 0; }
+  .sub { text-align: center; font-size: 10pt; color: #555; margin-top: 2pt; margin-bottom: 12pt; }
+  .meta { width: 100%; margin-bottom: 12pt; }
+  .meta td { padding: 2pt 6pt; font-size: 10pt; }
+  .meta .lbl { color: #555; }
+  table.marks { width: 100%; border-collapse: collapse; margin-top: 8pt; }
+  table.marks th, table.marks td { border: 1px solid #888; padding: 4pt 6pt; }
+  table.marks th { background: #eee; text-align: left; font-weight: bold; }
+  table.marks td.num { text-align: right; }
+  .totals { margin-top: 14pt; width: 100%; }
+  .totals td { padding: 4pt 6pt; font-size: 11pt; }
+  .totals .lbl { color: #555; }
+  .totals .val { font-weight: bold; }
+  .footer { margin-top: 30pt; }
+  .sigblock { display: inline-block; width: 32%; text-align: center; vertical-align: top; }
+  .sigblock .role { font-size: 10pt; color: #555; }
+  .sigblock .line { margin-top: 36pt; border-top: 1px solid #444; }
+</style>
+</head>
+<body>
+
+<h1>Bulletin de Notes</h1>
+<div class="sub">{{ b.academic_year }} &mdash; {{ b.term }}</div>
+
+<table class="meta">
+  <tr>
+    <td class="lbl">&Eacute;l&egrave;ve</td>
+    <td><strong>{{ b.student_name }}</strong></td>
+    <td class="lbl">Classe</td>
+    <td>{{ b.classroom }}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Bar&egrave;me</td>
+    <td>{{ b.scale }}</td>
+    <td class="lbl">Effectif</td>
+    <td>{{ b.class_size }}</td>
+  </tr>
+</table>
+
+<table class="marks">
+  <thead>
+    <tr>
+      <th>Mati&egrave;re</th>
+      <th class="num">Coefficient</th>
+      <th class="num">Moyenne</th>
+      <th class="num">Pond&eacute;r&eacute;</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for line in b.subjects %}
+    <tr>
+      <td>{{ line.subject }}</td>
+      <td class="num">{{ line.coefficient }}</td>
+      <td class="num">{% if line.average is not None %}{{ line.average }}{% else %}&mdash;{% endif %}</td>
+      <td class="num">{% if line.weighted is not None %}{{ line.weighted }}{% else %}&mdash;{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<table class="totals">
+  <tr>
+    <td class="lbl">Moyenne g&eacute;n&eacute;rale</td>
+    <td class="val">{% if b.average is not None %}{{ b.average }} / {{ b.scale }}{% else %}&mdash;{% endif %}</td>
+    <td class="lbl">Rang</td>
+    <td class="val">{% if b.rank %}{{ b.rank }} / {{ b.class_size }}{% else %}&mdash;{% endif %}</td>
+    <td class="lbl">Mention</td>
+    <td class="val">{{ b.mention|default:"&mdash;" }}</td>
+  </tr>
+</table>
+
+<div class="footer">
+  <div class="sigblock">
+    <div class="role">Professeur principal</div>
+    <div class="line"></div>
+  </div>
+  <div class="sigblock">
+    <div class="role">Directeur</div>
+    <div class="line"></div>
+  </div>
+  <div class="sigblock">
+    <div class="role">Parent / Tuteur</div>
+    <div class="line"></div>
+  </div>
+</div>
+
+</body>
+</html>
