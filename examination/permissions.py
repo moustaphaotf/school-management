@@ -1,16 +1,112 @@
 """Custom DRF permissions for the examination app.
 
 Design:
-- Any authenticated user can READ marks, exams, results, bulletins.
-- Only admins (superuser/staff) and the teacher allocated to the subject
-  can CREATE/UPDATE/DELETE marks for a given (subject, classroom).
+- Reads are scoped by role:
+    * admin (superuser/staff) sees everything,
+    * teachers see data for classrooms where they have an AllocatedSubject,
+    * parents see data for their children only (Student.parent_guardian).
+- Writes on marks reserved to admin or the teacher allocated to the subject
+  for that classroom.
 - For exams (ExaminationListHandler), the creator OR a teacher of one of
   the linked classrooms can write.
 """
 from rest_framework import permissions
 
-from academic.models import AllocatedSubject
+from academic.models import AllocatedSubject, Student, StudentClassEnrollment
 from .models import ExaminationListHandler, MarksManagement
+
+
+def is_admin(user) -> bool:
+    return bool(
+        user and user.is_authenticated and (user.is_superuser or user.is_staff)
+    )
+
+
+def user_can_view_classroom(user, classroom_id: int) -> bool:
+    """True if user is admin, a teacher allocated to this classroom, or
+    a parent with at least one child enrolled in this classroom."""
+    if not user or not user.is_authenticated:
+        return False
+    if is_admin(user):
+        return True
+    teacher = getattr(user, "teacher", None)
+    if teacher is not None:
+        if AllocatedSubject.objects.filter(
+            teacher_name=teacher, class_room_id=classroom_id
+        ).exists():
+            return True
+    parent = getattr(user, "parent", None)
+    if parent is not None:
+        if StudentClassEnrollment.objects.filter(
+            classroom_id=classroom_id, student__parent_guardian=parent
+        ).exists():
+            return True
+    return False
+
+
+def user_can_view_enrollment(user, enrollment_id: int) -> bool:
+    """True if user is admin, a teacher allocated to the enrollment's
+    classroom, or the parent of the enrolled student."""
+    if not user or not user.is_authenticated:
+        return False
+    if is_admin(user):
+        return True
+    enrollment = (
+        StudentClassEnrollment.objects.filter(pk=enrollment_id)
+        .select_related("student")
+        .first()
+    )
+    if enrollment is None:
+        return False
+    teacher = getattr(user, "teacher", None)
+    if teacher is not None:
+        if AllocatedSubject.objects.filter(
+            teacher_name=teacher, class_room_id=enrollment.classroom_id
+        ).exists():
+            return True
+    parent = getattr(user, "parent", None)
+    if parent is not None:
+        if enrollment.student.parent_guardian_id == parent.id:
+            return True
+    return False
+
+
+class CanViewExaminationData(permissions.BasePermission):
+    """Base gate for read endpoints on examination data: must be admin,
+    a teacher, or a parent. Per-row visibility is enforced via queryset
+    filtering in the view's get_queryset."""
+
+    def has_permission(self, request, view):
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+        return (
+            is_admin(user)
+            or getattr(user, "teacher", None) is not None
+            or getattr(user, "parent", None) is not None
+        )
+
+
+class IsAdminOrTeacherOfClassroom(permissions.BasePermission):
+    """Used by class-wide views (ZIP bulletins, ranking, grid, generate
+    results) where parents must NOT see the whole class. The view's
+    URL kwarg `classroom_id` is consulted."""
+
+    def has_permission(self, request, view):
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+        if is_admin(user):
+            return True
+        teacher = getattr(user, "teacher", None)
+        if teacher is None:
+            return False
+        classroom_id = view.kwargs.get("classroom_id")
+        if classroom_id is None:
+            return False
+        return AllocatedSubject.objects.filter(
+            teacher_name=teacher, class_room_id=classroom_id
+        ).exists()
 
 
 class IsTeacherOfSubjectOrAdmin(permissions.BasePermission):

@@ -688,3 +688,199 @@ class MarksXlsxTests(TestCase):
         )
         self.assertEqual(result["errors"], [])
         self.assertEqual(result["created"], 2)  # only the non-blank cells
+
+
+class ReadPermissionTests(TestCase):
+    """Verify GET endpoints scope visibility by role:
+    admin sees everything; teachers see their allocated classrooms;
+    parents see only their children; class-wide endpoints reject parents."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.scale = GradeScale.objects.get(name="/20")
+        gl = GradeLevel.objects.create(id=700, name="Collège", grade_scale=cls.scale)
+        cl = ClassLevel.objects.create(id=701, name="6eme", grade_level=gl)
+        cls.classroom_a = _create_classroom(cl, "RA")
+        cls.classroom_b = _create_classroom(cl, "RB")
+
+        cls.year = AcademicYear.objects.create(
+            name="2025-26", start_date=date(2025, 9, 1), active_year=True
+        )
+        cls.term = Term.objects.create(
+            name="T1",
+            academic_year=cls.year,
+            start_date=date(2025, 9, 1),
+            end_date=date(2025, 12, 20),
+        )
+        cls.math = Subject.objects.create(name="Math")
+
+        # Teacher allocated to classroom_a only
+        cls.teacher_a = cls.classroom_a.class_teacher
+        AllocatedSubject.objects.create(
+            teacher_name=cls.teacher_a,
+            subject=cls.math,
+            academic_year=cls.year,
+            term=cls.term,
+            class_room=cls.classroom_a,
+            coefficient=Decimal("1"),
+            weekly_periods=4,
+        )
+        # Teacher of classroom_b — not allocated to classroom_a
+        cls.teacher_b = cls.classroom_b.class_teacher
+
+        # _enroll auto-creates a Parent via Student.save() linked by parent_contact;
+        # we use that auto-created parent as the "logged-in parent" for the tests.
+        cls.enr_a = _enroll(cls.classroom_a, cls.year, "Alpha")
+        cls.parent = cls.enr_a.student.parent_guardian
+
+        # Unrelated enrollment in classroom_b (different parent_contact -> different Parent)
+        cls.enr_b = _enroll(cls.classroom_b, cls.year, "Beta")
+
+        cls.exam = _make_exam("DS1 T1", cls.classroom_a, cls.term, out_of=20)
+        MarksManagement.objects.create(
+            exam_name=cls.exam,
+            points_scored=15,
+            subject=cls.math,
+            student=cls.enr_a,
+            created_by=cls.teacher_a,
+        )
+
+        cls.admin = CustomUser.objects.create_superuser(
+            email="admin-r@test.gn", password="x"
+        )
+
+    # --- Bulletin (per enrollment) ---
+
+    def test_anonymous_cannot_read_bulletin(self):
+        client = APIClient()
+        url = (
+            f"/api/examination/enrollments/{self.enr_a.id}"
+            f"/terms/{self.term.id}/bulletin/"
+        )
+        self.assertIn(client.get(url).status_code, (401, 403))
+
+    def test_admin_can_read_any_bulletin(self):
+        client = APIClient()
+        client.force_authenticate(user=self.admin)
+        url = (
+            f"/api/examination/enrollments/{self.enr_b.id}"
+            f"/terms/{self.term.id}/bulletin/"
+        )
+        self.assertEqual(client.get(url).status_code, status.HTTP_200_OK)
+
+    def test_teacher_of_classroom_can_read_bulletin(self):
+        client = APIClient()
+        client.force_authenticate(user=self.teacher_a.user)
+        url = (
+            f"/api/examination/enrollments/{self.enr_a.id}"
+            f"/terms/{self.term.id}/bulletin/"
+        )
+        self.assertEqual(client.get(url).status_code, status.HTTP_200_OK)
+
+    def test_other_teacher_cannot_read_bulletin(self):
+        client = APIClient()
+        client.force_authenticate(user=self.teacher_b.user)
+        url = (
+            f"/api/examination/enrollments/{self.enr_a.id}"
+            f"/terms/{self.term.id}/bulletin/"
+        )
+        self.assertEqual(client.get(url).status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_parent_can_read_own_child_bulletin(self):
+        client = APIClient()
+        client.force_authenticate(user=self.parent.user)
+        url = (
+            f"/api/examination/enrollments/{self.enr_a.id}"
+            f"/terms/{self.term.id}/bulletin/"
+        )
+        self.assertEqual(client.get(url).status_code, status.HTTP_200_OK)
+
+    def test_parent_cannot_read_other_child_bulletin(self):
+        client = APIClient()
+        client.force_authenticate(user=self.parent.user)
+        url = (
+            f"/api/examination/enrollments/{self.enr_b.id}"
+            f"/terms/{self.term.id}/bulletin/"
+        )
+        self.assertEqual(client.get(url).status_code, status.HTTP_403_FORBIDDEN)
+
+    # --- Class-wide endpoints (parents must be rejected) ---
+
+    def test_parent_cannot_read_class_ranking(self):
+        client = APIClient()
+        client.force_authenticate(user=self.parent.user)
+        url = (
+            f"/api/examination/classrooms/{self.classroom_a.id}"
+            f"/terms/{self.term.id}/ranking/"
+        )
+        self.assertEqual(client.get(url).status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_parent_cannot_read_class_bulletins_zip(self):
+        client = APIClient()
+        client.force_authenticate(user=self.parent.user)
+        url = (
+            f"/api/examination/classrooms/{self.classroom_a.id}"
+            f"/terms/{self.term.id}/bulletins-pdf/"
+        )
+        self.assertEqual(client.get(url).status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_teacher_can_read_their_class_ranking(self):
+        client = APIClient()
+        client.force_authenticate(user=self.teacher_a.user)
+        url = (
+            f"/api/examination/classrooms/{self.classroom_a.id}"
+            f"/terms/{self.term.id}/ranking/"
+        )
+        self.assertEqual(client.get(url).status_code, status.HTTP_200_OK)
+
+    def test_other_teacher_cannot_read_class_ranking(self):
+        client = APIClient()
+        client.force_authenticate(user=self.teacher_b.user)
+        url = (
+            f"/api/examination/classrooms/{self.classroom_a.id}"
+            f"/terms/{self.term.id}/ranking/"
+        )
+        self.assertEqual(client.get(url).status_code, status.HTTP_403_FORBIDDEN)
+
+    # --- MarksListView queryset filtering ---
+
+    def test_parent_marks_list_only_includes_their_children(self):
+        # Add a mark for the unrelated student in classroom_b
+        francais = Subject.objects.create(name="Francais")
+        AllocatedSubject.objects.create(
+            teacher_name=self.teacher_b,
+            subject=francais,
+            academic_year=self.year,
+            term=self.term,
+            class_room=self.classroom_b,
+            coefficient=Decimal("1"),
+            weekly_periods=4,
+        )
+        exam_b = _make_exam("DS1 B", self.classroom_b, self.term, out_of=20)
+        MarksManagement.objects.create(
+            exam_name=exam_b,
+            points_scored=10,
+            subject=francais,
+            student=self.enr_b,
+            created_by=self.teacher_b,
+        )
+
+        client = APIClient()
+        client.force_authenticate(user=self.parent.user)
+        response = client.get("/api/examination/marks/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        results = data["results"] if isinstance(data, dict) else data
+        student_ids = {row["student"] for row in results}
+        self.assertEqual(student_ids, {self.enr_a.id})
+
+    def test_teacher_marks_list_only_includes_allocated_classrooms(self):
+        client = APIClient()
+        client.force_authenticate(user=self.teacher_a.user)
+        response = client.get("/api/examination/marks/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        results = data["results"] if isinstance(data, dict) else data
+        # teacher_a is allocated to classroom_a only — sees the one mark there
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["student"], self.enr_a.id)

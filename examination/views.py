@@ -6,7 +6,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .permissions import IsTeacherOfSubjectOrAdmin, teacher_owns_subject
+from .permissions import (
+    CanViewExaminationData,
+    IsAdminOrTeacherOfClassroom,
+    IsTeacherOfSubjectOrAdmin,
+    is_admin,
+    teacher_owns_subject,
+    user_can_view_enrollment,
+)
 
 from academic.models import (
     AllocatedSubject,
@@ -120,6 +127,19 @@ class MarksListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        user = self.request.user
+        if not is_admin(user):
+            teacher = getattr(user, "teacher", None)
+            parent = getattr(user, "parent", None)
+            if teacher is not None:
+                classroom_ids = AllocatedSubject.objects.filter(
+                    teacher_name=teacher
+                ).values_list("class_room_id", flat=True)
+                qs = qs.filter(student__classroom_id__in=classroom_ids)
+            elif parent is not None:
+                qs = qs.filter(student__student__parent_guardian=parent)
+            else:
+                qs = qs.none()
         exam_id = self.request.query_params.get("exam")
         subject_id = self.request.query_params.get("subject")
         if exam_id:
@@ -133,6 +153,23 @@ class MarksDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = MarksManagement.objects.all()
     serializer_class = MarkSerializer
     permission_classes = [IsTeacherOfSubjectOrAdmin]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if not is_admin(user):
+            teacher = getattr(user, "teacher", None)
+            parent = getattr(user, "parent", None)
+            if teacher is not None:
+                classroom_ids = AllocatedSubject.objects.filter(
+                    teacher_name=teacher
+                ).values_list("class_room_id", flat=True)
+                qs = qs.filter(student__classroom_id__in=classroom_ids)
+            elif parent is not None:
+                qs = qs.filter(student__student__parent_guardian=parent)
+            else:
+                qs = qs.none()
+        return qs
 
 
 # --- Bulk marks entry (one exam x one subject, many students) ---
@@ -200,7 +237,7 @@ class ClassMarksView(APIView):
     Returns the list of enrollments in the classroom, plus per-subject marks
     for the given exam. Useful for an admin/UI grid."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrTeacherOfClassroom]
 
     def get(self, request, classroom_id, exam_id):
         classroom = get_object_or_404(ClassRoom, pk=classroom_id)
@@ -269,6 +306,11 @@ class BulletinView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, enrollment_id, term_id):
+        if not user_can_view_enrollment(request.user, enrollment_id):
+            return Response(
+                {"detail": "Not allowed to view this bulletin."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         enrollment = get_object_or_404(
             StudentClassEnrollment.objects.select_related(
                 "student", "classroom", "academic_year"
@@ -286,6 +328,11 @@ class BulletinPDFView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, enrollment_id, term_id):
+        if not user_can_view_enrollment(request.user, enrollment_id):
+            return Response(
+                {"detail": "Not allowed to view this bulletin."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         enrollment = get_object_or_404(
             StudentClassEnrollment.objects.select_related(
                 "student", "classroom", "academic_year"
@@ -312,7 +359,7 @@ class ClassBulletinsZIPView(APIView):
     """GET a ZIP archive of PDF bulletins for every enrolled student in
     a (classroom, term)."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrTeacherOfClassroom]
 
     def get(self, request, classroom_id, term_id):
         classroom = get_object_or_404(ClassRoom, pk=classroom_id)
@@ -445,7 +492,7 @@ class MarksBulkUploadView(APIView):
 class ClassRankingView(APIView):
     """GET ranking for one (classroom, term)."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrTeacherOfClassroom]
 
     def get(self, request, classroom_id, term_id):
         classroom = get_object_or_404(ClassRoom, pk=classroom_id)
@@ -475,7 +522,7 @@ class GenerateClassResultsView(APIView):
 
     Idempotent (update_or_create). Returns the count of saved rows."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrTeacherOfClassroom]
 
     def post(self, request, classroom_id, term_id):
         classroom = get_object_or_404(ClassRoom, pk=classroom_id)
@@ -493,10 +540,23 @@ class GenerateClassResultsView(APIView):
 class ResultListView(generics.ListCreateAPIView):
     queryset = Result.objects.all().select_related("student", "term", "academic_year")
     serializer_class = ResultSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [CanViewExaminationData]
 
     def get_queryset(self):
         qs = super().get_queryset()
+        user = self.request.user
+        if not is_admin(user):
+            teacher = getattr(user, "teacher", None)
+            parent = getattr(user, "parent", None)
+            if teacher is not None:
+                classroom_ids = AllocatedSubject.objects.filter(
+                    teacher_name=teacher
+                ).values_list("class_room_id", flat=True)
+                qs = qs.filter(student__classroom_id__in=classroom_ids)
+            elif parent is not None:
+                qs = qs.filter(student__student__parent_guardian=parent)
+            else:
+                qs = qs.none()
         student_id = self.request.query_params.get("student")
         term_id = self.request.query_params.get("term")
         if student_id:
@@ -509,4 +569,21 @@ class ResultListView(generics.ListCreateAPIView):
 class ResultDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [CanViewExaminationData]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if not is_admin(user):
+            teacher = getattr(user, "teacher", None)
+            parent = getattr(user, "parent", None)
+            if teacher is not None:
+                classroom_ids = AllocatedSubject.objects.filter(
+                    teacher_name=teacher
+                ).values_list("class_room_id", flat=True)
+                qs = qs.filter(student__classroom_id__in=classroom_ids)
+            elif parent is not None:
+                qs = qs.filter(student__student__parent_guardian=parent)
+            else:
+                qs = qs.none()
+        return qs
