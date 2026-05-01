@@ -10,7 +10,11 @@ class GradeScale(models.Model):
     """Translate a numeric grade to some other scale.
     Example: Letter grade or 4.0 scale."""
 
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True, verbose_name=_("name"))
+
+    class Meta:
+        verbose_name = _("Grade Scale")
+        verbose_name_plural = _("Grade Scales")
 
     def __str__(self):
         return self.name
@@ -42,13 +46,15 @@ class GradeScale(models.Model):
 class GradeScaleRule(models.Model):
     """One rule for a grade scale."""
 
-    min_grade = models.DecimalField(max_digits=5, decimal_places=2)
-    max_grade = models.DecimalField(max_digits=5, decimal_places=2)
-    letter_grade = models.CharField(max_length=50, blank=True, null=True)
-    numeric_scale = models.DecimalField(max_digits=5, decimal_places=2, blank=True)
-    grade_scale = models.ForeignKey(GradeScale, on_delete=models.CASCADE)
+    min_grade = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=_("minimum grade"))
+    max_grade = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=_("maximum grade"))
+    letter_grade = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("letter grade"))
+    numeric_scale = models.DecimalField(max_digits=5, decimal_places=2, blank=True, verbose_name=_("numeric scale"))
+    grade_scale = models.ForeignKey(GradeScale, on_delete=models.CASCADE, verbose_name=_("grade scale"))
 
     class Meta:
+        verbose_name = _("Grade Scale Rule")
+        verbose_name_plural = _("Grade Scale Rules")
         unique_together = ("min_grade", "max_grade", "grade_scale")
         indexes = [
             models.Index(fields=["min_grade", "max_grade", "grade_scale"]),
@@ -79,16 +85,18 @@ class GradeScaleRule(models.Model):
 
 
 class Result(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    gpa = models.FloatField(null=True)
-    cat_gpa = models.FloatField(null=True)
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE)
-    term = models.ForeignKey(Term, on_delete=models.SET_NULL, blank=True, null=True)
-    average = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    rank = models.IntegerField(null=True, blank=True)
-    mention = models.CharField(max_length=20, blank=True)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, verbose_name=_("student"))
+    gpa = models.FloatField(null=True, verbose_name=_("GPA"))
+    cat_gpa = models.FloatField(null=True, verbose_name=_("CAT GPA"))
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, verbose_name=_("academic year"))
+    term = models.ForeignKey(Term, on_delete=models.SET_NULL, blank=True, null=True, verbose_name=_("term"))
+    average = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("average"))
+    rank = models.IntegerField(null=True, blank=True, verbose_name=_("rank"))
+    mention = models.CharField(max_length=20, blank=True, verbose_name=_("mention"))
 
     class Meta:
+        verbose_name = _("Result")
+        verbose_name_plural = _("Results")
         unique_together = ("student", "academic_year", "term")
 
     def __str__(self):
@@ -103,24 +111,31 @@ class Result(models.Model):
 
 
 class ExaminationListHandler(models.Model):
-    name = models.CharField(max_length=100)
-    start_date = models.DateField()
-    ends_date = models.DateField()
-    out_of = models.IntegerField()
-    classrooms = models.ManyToManyField(ClassRoom, related_name="class_exams")
+    name = models.CharField(max_length=100, verbose_name=_("name"))
+    start_date = models.DateField(verbose_name=_("start date"))
+    ends_date = models.DateField(verbose_name=_("end date"))
+    out_of = models.IntegerField(verbose_name=_("out of"))
+    classrooms = models.ManyToManyField(ClassRoom, related_name="class_exams", verbose_name=_("classrooms"))
     term = models.ForeignKey(
         Term,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="exams",
+        verbose_name=_("term"),
         help_text=_("Term this exam belongs to. Used to aggregate marks for term results."),
     )
     comments = models.CharField(
-        max_length=200, blank=True, null=True, help_text=_("Comments Regarding Exam")
+        max_length=200, blank=True, null=True,
+        verbose_name=_("comments"),
+        help_text=_("Comments Regarding Exam"),
     )
-    created_by = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True)
-    created_on = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True, verbose_name=_("created by"))
+    created_on = models.DateTimeField(auto_now_add=True, verbose_name=_("created on"))
+
+    class Meta:
+        verbose_name = _("Examination")
+        verbose_name_plural = _("Examinations")
 
     @property
     def status(self):
@@ -144,19 +159,27 @@ class ExaminationListHandler(models.Model):
 
 class MarksManagement(models.Model):
     exam_name = models.ForeignKey(
-        ExaminationListHandler, on_delete=models.CASCADE, related_name="exam_marks"
+        ExaminationListHandler, on_delete=models.CASCADE, related_name="exam_marks",
+        verbose_name=_("examination"),
     )
-    points_scored = models.FloatField()
+    points_scored = models.FloatField(verbose_name=_("points scored"))
     subject = models.ForeignKey(
-        Subject, on_delete=models.CASCADE, related_name="subject_marks"
+        Subject, on_delete=models.CASCADE, related_name="subject_marks",
+        verbose_name=_("subject"),
     )
     student = models.ForeignKey(
-        StudentClassEnrollment, on_delete=models.CASCADE, related_name="student_marks"
+        StudentClassEnrollment, on_delete=models.CASCADE, related_name="student_marks",
+        verbose_name=_("student"),
     )
     created_by = models.ForeignKey(
-        Teacher, on_delete=models.CASCADE, related_name="marks_entered"
+        Teacher, on_delete=models.CASCADE, related_name="marks_entered",
+        verbose_name=_("created by"),
     )
-    date_time = models.DateTimeField(auto_now_add=True)
+    date_time = models.DateTimeField(auto_now_add=True, verbose_name=_("date / time"))
+
+    class Meta:
+        verbose_name = _("Mark")
+        verbose_name_plural = _("Marks")
 
     def __str__(self):
         return f"{self.exam_name} - {self.student} - {self.points_scored}"

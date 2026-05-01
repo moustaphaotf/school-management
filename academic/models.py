@@ -15,12 +15,15 @@ from administration.common_objs import *
 
 
 class Department(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True, verbose_name=_("name"))
     order_rank = models.IntegerField(
-        blank=True, null=True, help_text=_("Rank for subject reports")
+        blank=True, null=True, verbose_name=_("order rank"),
+        help_text=_("Rank for subject reports"),
     )
 
     class Meta:
+        verbose_name = _("Department")
+        verbose_name_plural = _("Departments")
         ordering = ("order_rank", "name")
 
     def __str__(self):
@@ -33,15 +36,20 @@ class Department(models.Model):
 
 
 class Subject(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    subject_code = models.CharField(max_length=10, blank=True, null=True, unique=True)
+    name = models.CharField(max_length=255, unique=True, verbose_name=_("name"))
+    subject_code = models.CharField(max_length=10, blank=True, null=True, unique=True, verbose_name=_("subject code"))
     is_selectable = models.BooleanField(
-        default=False, help_text=_("Select if subject is optional")
+        default=False, verbose_name=_("is selectable"),
+        help_text=_("Select if subject is optional"),
     )
-    graded = models.BooleanField(default=True, help_text=_("Teachers can submit grades"))
-    description = models.CharField(max_length=255, blank=True)
+    graded = models.BooleanField(
+        default=True, verbose_name=_("graded"),
+        help_text=_("Teachers can submit grades"),
+    )
+    description = models.CharField(max_length=255, blank=True, verbose_name=_("description"))
     department = models.ForeignKey(
-        Department, on_delete=models.CASCADE, blank=True, null=True
+        Department, on_delete=models.CASCADE, blank=True, null=True,
+        verbose_name=_("department"),
     )
 
     def __str__(self):
@@ -67,30 +75,33 @@ class Teacher(models.Model):
         related_name="teacher",
         null=True,
         blank=True,
+        verbose_name=_("user"),
     )
-    username = models.CharField(unique=True, max_length=250, blank=True)
-    first_name = models.CharField(max_length=300, blank=True)
-    middle_name = models.CharField(max_length=100, blank=True)
-    last_name = models.CharField(max_length=300, blank=True)
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICE, blank=True)
-    email = models.EmailField(blank=True, null=True)
-    empId = models.CharField(max_length=8, unique=True, null=True, blank=True)
-    tin_number = models.CharField(max_length=9, blank=True, null=True)
-    nssf_number = models.CharField(max_length=9, blank=True, null=True)
-    short_name = models.CharField(max_length=3, blank=True, null=True, unique=True)
-    salary = models.IntegerField(blank=True, null=True)
-    unpaid_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    subject_specialization = models.ManyToManyField(Subject, blank=True)
-    national_id = models.CharField(max_length=100, blank=True, null=True)
-    address = models.CharField(max_length=255, blank=True)
-    phone_number = models.CharField(max_length=150, blank=True)
-    alt_email = models.EmailField(blank=True, null=True)
-    date_of_birth = models.DateField(blank=True, null=True)
-    designation = models.CharField(max_length=255, blank=True, null=True)
-    image = models.ImageField(upload_to="Employee_images", blank=True, null=True)
-    inactive = models.BooleanField(default=False)
+    username = models.CharField(unique=True, max_length=250, blank=True, verbose_name=_("username"))
+    first_name = models.CharField(max_length=300, blank=True, verbose_name=_("first name"))
+    middle_name = models.CharField(max_length=100, blank=True, verbose_name=_("middle name"))
+    last_name = models.CharField(max_length=300, blank=True, verbose_name=_("last name"))
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICE, blank=True, verbose_name=_("gender"))
+    email = models.EmailField(blank=True, null=True, verbose_name=_("email"))
+    empId = models.CharField(max_length=8, unique=True, null=True, blank=True, verbose_name=_("employee ID"))
+    tin_number = models.CharField(max_length=9, blank=True, null=True, verbose_name=_("TIN number"))
+    nssf_number = models.CharField(max_length=9, blank=True, null=True, verbose_name=_("NSSF number"))
+    short_name = models.CharField(max_length=3, blank=True, null=True, unique=True, verbose_name=_("short name"))
+    salary = models.IntegerField(blank=True, null=True, verbose_name=_("salary"))
+    unpaid_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name=_("unpaid salary"))
+    subject_specialization = models.ManyToManyField(Subject, blank=True, verbose_name=_("subject specialization"))
+    national_id = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("national ID"))
+    address = models.CharField(max_length=255, blank=True, verbose_name=_("address"))
+    phone_number = models.CharField(max_length=150, blank=True, verbose_name=_("phone number"))
+    alt_email = models.EmailField(blank=True, null=True, verbose_name=_("alternative email"))
+    date_of_birth = models.DateField(blank=True, null=True, verbose_name=_("date of birth"))
+    designation = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("designation"))
+    image = models.ImageField(upload_to="Employee_images", blank=True, null=True, verbose_name=_("image"))
+    inactive = models.BooleanField(default=False, verbose_name=_("inactive"))
 
     class Meta:
+        verbose_name = _("Teacher")
+        verbose_name_plural = _("Teachers")
         ordering = ("id", "first_name", "last_name")
 
     def __str__(self):
@@ -147,16 +158,19 @@ class Teacher(models.Model):
 
 class GradeLevel(models.Model):
     id = models.IntegerField(unique=True, primary_key=True, verbose_name=_("Grade Level"))
-    name = models.CharField(max_length=150, unique=True)
+    name = models.CharField(max_length=150, unique=True, verbose_name=_("name"))
     grade_scale = models.ForeignKey(
         "examination.GradeScale",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
+        verbose_name=_("grade scale"),
         help_text=_("Grading scale used for this level (e.g., /10 for primary, /20 for college/high-school)."),
     )
 
     class Meta:
+        verbose_name = _("Grade Level")
+        verbose_name_plural = _("Grade Levels")
         ordering = ("id",)
 
     def __str__(self):
@@ -165,12 +179,15 @@ class GradeLevel(models.Model):
 
 class ClassLevel(models.Model):
     id = models.IntegerField(unique=True, primary_key=True, verbose_name=_("Class Level"))
-    name = models.CharField(max_length=150, unique=True)
+    name = models.CharField(max_length=150, unique=True, verbose_name=_("name"))
     grade_level = models.ForeignKey(
-        GradeLevel, blank=True, null=True, on_delete=models.SET_NULL
+        GradeLevel, blank=True, null=True, on_delete=models.SET_NULL,
+        verbose_name=_("grade level"),
     )
 
     class Meta:
+        verbose_name = _("Class Level")
+        verbose_name_plural = _("Class Levels")
         ordering = ("id",)
 
     def __str__(self):
@@ -178,10 +195,15 @@ class ClassLevel(models.Model):
 
 
 class ClassYear(models.Model):
-    year = models.CharField(max_length=100, unique=True, help_text=_("Example 2020"))
+    year = models.CharField(max_length=100, unique=True, verbose_name=_("year"), help_text=_("Example 2020"))
     full_name = models.CharField(
-        max_length=255, help_text=_("Example Class of 2020"), blank=True
+        max_length=255, verbose_name=_("full name"),
+        help_text=_("Example Class of 2020"), blank=True,
     )
+
+    class Meta:
+        verbose_name = _("Class Year")
+        verbose_name_plural = _("Class Years")
 
     def __str__(self):
         return self.full_name
@@ -193,14 +215,22 @@ class ClassYear(models.Model):
 
 
 class ReasonLeft(models.Model):
-    reason = models.CharField(max_length=255, unique=True)
+    reason = models.CharField(max_length=255, unique=True, verbose_name=_("reason"))
+
+    class Meta:
+        verbose_name = _("Reason Left")
+        verbose_name_plural = _("Reasons Left")
 
     def __str__(self):
         return self.reason
 
 
 class Stream(models.Model):
-    name = models.CharField(max_length=50, validators=[stream_validator])
+    name = models.CharField(max_length=50, validators=[stream_validator], verbose_name=_("name"))
+
+    class Meta:
+        verbose_name = _("Stream")
+        verbose_name_plural = _("Streams")
 
     def __str__(self):
         return self.name
@@ -212,16 +242,20 @@ class Stream(models.Model):
 
 class ClassRoom(models.Model):
     name = models.ForeignKey(
-        ClassLevel, on_delete=models.CASCADE, blank=True, related_name="class_level"
+        ClassLevel, on_delete=models.CASCADE, blank=True, related_name="class_level",
+        verbose_name=_("class level"),
     )
     stream = models.ForeignKey(
-        Stream, on_delete=models.CASCADE, blank=True, related_name="class_stream"
+        Stream, on_delete=models.CASCADE, blank=True, related_name="class_stream",
+        verbose_name=_("stream"),
     )
-    class_teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, blank=True)
-    capacity = models.PositiveIntegerField(default=40, blank=True)
-    occupied_sits = models.PositiveIntegerField(default=0, blank=True)
+    class_teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, blank=True, verbose_name=_("class teacher"))
+    capacity = models.PositiveIntegerField(default=40, blank=True, verbose_name=_("capacity"))
+    occupied_sits = models.PositiveIntegerField(default=0, blank=True, verbose_name=_("occupied sits"))
 
     class Meta:
+        verbose_name = _("Classroom")
+        verbose_name_plural = _("Classrooms")
         constraints = [
             models.UniqueConstraint(fields=["name", "stream"], name="unique_classroom")
         ]
@@ -252,49 +286,68 @@ class ClassRoom(models.Model):
 
 
 class Topic(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("name"))
     class_level = models.ForeignKey(
-        ClassLevel, on_delete=models.CASCADE, blank=True, null=True
+        ClassLevel, on_delete=models.CASCADE, blank=True, null=True,
+        verbose_name=_("class level"),
     )
     subject = models.ForeignKey(
-        Subject, on_delete=models.CASCADE, blank=True, null=True
+        Subject, on_delete=models.CASCADE, blank=True, null=True,
+        verbose_name=_("subject"),
     )
+
+    class Meta:
+        verbose_name = _("Topic")
+        verbose_name_plural = _("Topics")
 
     def __str__(self):
         return self.name
 
 
 class SubTopic(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("name"))
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, blank=True, null=True, verbose_name=_("topic"))
+
+    class Meta:
+        verbose_name = _("Sub-Topic")
+        verbose_name_plural = _("Sub-Topics")
 
     def __str__(self):
         return self.name
 
 
 class AllocatedSubject(models.Model):
-    teacher_name = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    teacher_name = models.ForeignKey(Teacher, on_delete=models.CASCADE, verbose_name=_("teacher"))
     subject = models.ForeignKey(
-        Subject, on_delete=models.CASCADE, related_name="allocated_subjects"
+        Subject, on_delete=models.CASCADE, related_name="allocated_subjects",
+        verbose_name=_("subject"),
     )
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE)
-    term = models.ForeignKey(Term, on_delete=models.SET_NULL, blank=True, null=True)
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, verbose_name=_("academic year"))
+    term = models.ForeignKey(Term, on_delete=models.SET_NULL, blank=True, null=True, verbose_name=_("term"))
     class_room = models.ForeignKey(
-        ClassRoom, on_delete=models.CASCADE, related_name="subjects"
+        ClassRoom, on_delete=models.CASCADE, related_name="subjects",
+        verbose_name=_("classroom"),
     )
     coefficient = models.DecimalField(
         max_digits=4,
         decimal_places=2,
         default=1.0,
+        verbose_name=_("coefficient"),
         help_text=_("Coefficient applied to this subject's average when computing the term general average."),
     )
-    weekly_periods = models.IntegerField(help_text=_("Total number of periods per week."))
+    weekly_periods = models.IntegerField(
+        verbose_name=_("weekly periods"),
+        help_text=_("Total number of periods per week."),
+    )
     max_daily_periods = models.IntegerField(
         default=2,
+        verbose_name=_("max daily periods"),
         help_text=_("Maximum number of periods allowed per day for this subject."),
     )
 
     class Meta:
+        verbose_name = _("Allocated Subject")
+        verbose_name_plural = _("Allocated Subjects")
         unique_together = (
             "teacher_name",
             "subject",
@@ -314,6 +367,7 @@ class Parent(models.Model):
         related_name="parent",
         null=True,
         blank=True,
+        verbose_name=_("user"),
     )
     first_name = models.CharField(
         max_length=300, verbose_name=_("First Name"), blank=True, null=True
@@ -325,33 +379,42 @@ class Parent(models.Model):
         max_length=300, verbose_name=_("Last Name"), blank=True, null=True
     )
     gender = models.CharField(
-        max_length=10, choices=GENDER_CHOICE, blank=True, null=True
+        max_length=10, choices=GENDER_CHOICE, blank=True, null=True,
+        verbose_name=_("gender"),
     )
-    email = models.EmailField(blank=True, null=True, unique=True)
-    date_of_birth = models.DateField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True, unique=True, verbose_name=_("email"))
+    date_of_birth = models.DateField(blank=True, null=True, verbose_name=_("date of birth"))
     parent_type = models.CharField(
-        choices=PARENT_CHOICE, max_length=10, blank=True, null=True
+        choices=PARENT_CHOICE, max_length=10, blank=True, null=True,
+        verbose_name=_("parent type"),
     )
-    address = models.CharField(max_length=255, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("address"))
     phone_number = models.CharField(
-        max_length=150, unique=True, help_text=_("Personal phone number")
+        max_length=150, unique=True, verbose_name=_("phone number"),
+        help_text=_("Personal phone number"),
     )
-    national_id = models.CharField(max_length=100, blank=True, null=True)
+    national_id = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("national ID"))
     occupation = models.CharField(
-        max_length=255, blank=True, null=True, help_text=_("Current occupation")
+        max_length=255, blank=True, null=True, verbose_name=_("occupation"),
+        help_text=_("Current occupation"),
     )
     monthly_income = models.FloatField(
-        help_text=_("Parent's average monthly income"), blank=True, null=True
+        verbose_name=_("monthly income"),
+        help_text=_("Parent's average monthly income"), blank=True, null=True,
     )
     single_parent = models.BooleanField(
-        default=False, blank=True, help_text=_("Is he/she a single parent")
+        default=False, blank=True, verbose_name=_("single parent"),
+        help_text=_("Is he/she a single parent"),
     )
-    alt_email = models.EmailField(blank=True, null=True, help_text=_("Personal email"))
-    date = models.DateTimeField(auto_now_add=True)
-    image = models.ImageField(upload_to="Parent_images", blank=True)
-    inactive = models.BooleanField(default=False)
+    alt_email = models.EmailField(blank=True, null=True, verbose_name=_("alternative email"),
+                                  help_text=_("Personal email"))
+    date = models.DateTimeField(auto_now_add=True, verbose_name=_("date"))
+    image = models.ImageField(upload_to="Parent_images", blank=True, verbose_name=_("image"))
+    inactive = models.BooleanField(default=False, verbose_name=_("inactive"))
 
     class Meta:
+        verbose_name = _("Parent")
+        verbose_name_plural = _("Parents")
         ordering = ["email", "first_name", "last_name"]
 
     def __str__(self):
@@ -399,52 +462,61 @@ class Parent(models.Model):
 
 class Student(models.Model):
     id = models.AutoField(primary_key=True)
-    first_name = models.CharField(max_length=150, null=True, verbose_name="First Name")
+    first_name = models.CharField(max_length=150, null=True, verbose_name=_("First Name"))
     middle_name = models.CharField(
-        max_length=150, blank=True, null=True, verbose_name="Middle Name"
+        max_length=150, blank=True, null=True, verbose_name=_("Middle Name")
     )
-    last_name = models.CharField(max_length=150, null=True, verbose_name="Last Name")
-    graduation_date = models.DateField(blank=True, null=True)
+    last_name = models.CharField(max_length=150, null=True, verbose_name=_("Last Name"))
+    graduation_date = models.DateField(blank=True, null=True, verbose_name=_("graduation date"))
     class_level = models.ForeignKey(
-        "ClassLevel", blank=True, null=True, on_delete=models.SET_NULL
+        "ClassLevel", blank=True, null=True, on_delete=models.SET_NULL,
+        verbose_name=_("class level"),
     )
     class_of_year = models.ForeignKey(
-        "ClassYear", blank=True, null=True, on_delete=models.SET_NULL
+        "ClassYear", blank=True, null=True, on_delete=models.SET_NULL,
+        verbose_name=_("class of year"),
     )
-    date_dismissed = models.DateField(blank=True, null=True)
+    date_dismissed = models.DateField(blank=True, null=True, verbose_name=_("date dismissed"))
     reason_left = models.ForeignKey(
-        "ReasonLeft", blank=True, null=True, on_delete=models.SET_NULL
+        "ReasonLeft", blank=True, null=True, on_delete=models.SET_NULL,
+        verbose_name=_("reason left"),
     )
     gender = models.CharField(
-        max_length=10, choices=GENDER_CHOICE, blank=True, null=True
+        max_length=10, choices=GENDER_CHOICE, blank=True, null=True,
+        verbose_name=_("gender"),
     )
     religion = models.CharField(
-        max_length=50, choices=RELIGION_CHOICE, blank=True, null=True
+        max_length=50, choices=RELIGION_CHOICE, blank=True, null=True,
+        verbose_name=_("religion"),
     )
-    region = models.CharField(max_length=255, blank=True, null=True)
-    city = models.CharField(max_length=255, blank=True, null=True)
-    street = models.CharField(max_length=255, blank=True)
-    blood_group = models.CharField(max_length=10, blank=True, null=True)
+    region = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("region"))
+    city = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("city"))
+    street = models.CharField(max_length=255, blank=True, verbose_name=_("street"))
+    blood_group = models.CharField(max_length=10, blank=True, null=True, verbose_name=_("blood group"))
     parent_guardian = models.ForeignKey(
         "Parent",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
         related_name="children",
+        verbose_name=_("parent / guardian"),
     )
-    parent_contact = models.CharField(max_length=15, blank=True, null=True)
-    date_of_birth = models.DateField(blank=True, null=True)
-    admission_date = models.DateTimeField(auto_now_add=True)
-    admission_number = models.CharField(max_length=50, blank=True, unique=True)
-    prems_number = models.CharField(max_length=50, blank=True)
-    std_vii_number = models.CharField(max_length=50, blank=True)
-    siblings = models.ManyToManyField("self", blank=True)
-    image = models.ImageField(upload_to="Student_images", blank=True)
+    parent_contact = models.CharField(max_length=15, blank=True, null=True, verbose_name=_("parent contact"))
+    date_of_birth = models.DateField(blank=True, null=True, verbose_name=_("date of birth"))
+    admission_date = models.DateTimeField(auto_now_add=True, verbose_name=_("admission date"))
+    admission_number = models.CharField(max_length=50, blank=True, unique=True, verbose_name=_("admission number"))
+    prems_number = models.CharField(max_length=50, blank=True, verbose_name=_("PREMS number"))
+    std_vii_number = models.CharField(max_length=50, blank=True, verbose_name=_("Std VII number"))
+    siblings = models.ManyToManyField("self", blank=True, verbose_name=_("siblings"))
+    image = models.ImageField(upload_to="Student_images", blank=True, verbose_name=_("image"))
     cache_gpa = models.DecimalField(
-        editable=False, max_digits=5, decimal_places=2, blank=True, null=True
+        editable=False, max_digits=5, decimal_places=2, blank=True, null=True,
+        verbose_name=_("cached GPA"),
     )
 
     class Meta:
+        verbose_name = _("Student")
+        verbose_name_plural = _("Students")
         ordering = ["admission_number", "last_name", "first_name"]
 
     def __str__(self):
@@ -567,16 +639,22 @@ class StudentClassEnrollment(models.Model):
     """
 
     classroom = models.ForeignKey(
-        ClassRoom, on_delete=models.CASCADE, related_name="class_students"
+        ClassRoom, on_delete=models.CASCADE, related_name="class_students",
+        verbose_name=_("classroom"),
     )
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE)
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, verbose_name=_("academic year"))
     student = models.ForeignKey(
         Student,
         on_delete=models.CASCADE,
         related_name="student_classes",
         blank=True,
         null=True,
+        verbose_name=_("student"),
     )
+
+    class Meta:
+        verbose_name = _("Student Class Enrollment")
+        verbose_name_plural = _("Student Class Enrollments")
 
     @property
     def is_current_class(self):
@@ -687,9 +765,13 @@ class StudentClassEnrollment(models.Model):
 
 
 class StudentsMedicalHistory(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    history = models.TextField(blank=True, null=True)
-    file = models.FileField(upload_to="students_medical_files", blank=True, null=True)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, verbose_name=_("student"))
+    history = models.TextField(blank=True, null=True, verbose_name=_("history"))
+    file = models.FileField(upload_to="students_medical_files", blank=True, null=True, verbose_name=_("file"))
+
+    class Meta:
+        verbose_name = _("Student Medical History")
+        verbose_name_plural = _("Student Medical Histories")
 
     def __str__(self):
         return f"Medical History for {self.student}"
@@ -703,17 +785,24 @@ class StudentsMedicalHistory(models.Model):
 
 
 class StudentsPreviousAcademicHistory(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    former_school = models.CharField(max_length=255, help_text=_("Former school name"))
-    last_gpa = models.FloatField()
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, verbose_name=_("student"))
+    former_school = models.CharField(max_length=255, verbose_name=_("former school"),
+                                     help_text=_("Former school name"))
+    last_gpa = models.FloatField(verbose_name=_("last GPA"))
     notes = models.CharField(
         max_length=255,
         blank=True,
+        verbose_name=_("notes"),
         help_text=_("Indicate student's academic performance according to your observation"),
     )
     academic_record = models.FileField(
-        upload_to="students_former_academic_files", blank=True
+        upload_to="students_former_academic_files", blank=True,
+        verbose_name=_("academic record"),
     )
+
+    class Meta:
+        verbose_name = _("Student Previous Academic History")
+        verbose_name_plural = _("Student Previous Academic Histories")
 
     def __str__(self):
         return f"Previous Academic History for {self.student}"
@@ -725,10 +814,14 @@ class StudentsPreviousAcademicHistory(models.Model):
 
 
 class Dormitory(models.Model):
-    name = models.CharField(max_length=150)
-    capacity = models.PositiveIntegerField(blank=True, null=True)
-    occupied_beds = models.IntegerField(blank=True, null=True)
-    captain = models.ForeignKey(Student, on_delete=models.CASCADE, blank=True)
+    name = models.CharField(max_length=150, verbose_name=_("name"))
+    capacity = models.PositiveIntegerField(blank=True, null=True, verbose_name=_("capacity"))
+    occupied_beds = models.IntegerField(blank=True, null=True, verbose_name=_("occupied beds"))
+    captain = models.ForeignKey(Student, on_delete=models.CASCADE, blank=True, verbose_name=_("captain"))
+
+    class Meta:
+        verbose_name = _("Dormitory")
+        verbose_name_plural = _("Dormitories")
 
     def __str__(self):
         return self.name
@@ -754,10 +847,14 @@ class Dormitory(models.Model):
 
 
 class DormitoryAllocation(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    dormitory = models.ForeignKey(Dormitory, on_delete=models.CASCADE)
-    date_from = models.DateField(auto_now_add=True)
-    date_till = models.DateField(blank=True, null=True)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, verbose_name=_("student"))
+    dormitory = models.ForeignKey(Dormitory, on_delete=models.CASCADE, verbose_name=_("dormitory"))
+    date_from = models.DateField(auto_now_add=True, verbose_name=_("date from"))
+    date_till = models.DateField(blank=True, null=True, verbose_name=_("date till"))
+
+    class Meta:
+        verbose_name = _("Dormitory Allocation")
+        verbose_name_plural = _("Dormitory Allocations")
 
     def __str__(self):
         return str(self.student.admission_number)
@@ -767,7 +864,9 @@ class DormitoryAllocation(models.Model):
         """Update the capacity of the selected dormitory."""
         selected_dorm = Dormitory.objects.select_for_update().get(pk=self.dormitory.pk)
         if selected_dorm.available_beds() <= 0:
-            raise ValidationError(f"{selected_dorm.name} has no available beds.")
+            raise ValidationError(
+                _("%(dorm)s has no available beds.") % {"dorm": selected_dorm.name}
+            )
         selected_dorm.occupied_beds += 1
         selected_dorm.save()
 
@@ -781,11 +880,16 @@ class DormitoryAllocation(models.Model):
 class StudentFile(models.Model):
     file = models.FileField(
         upload_to="students_files/%(student_id)s/",
+        verbose_name=_("file"),
         validators=[
             FileExtensionValidator(allowed_extensions=["pdf", "jpg", "png", "docx"])
         ],
     )
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, verbose_name=_("student"))
+
+    class Meta:
+        verbose_name = _("Student File")
+        verbose_name_plural = _("Student Files")
 
     def __str__(self):
         return str(self.student)
@@ -793,13 +897,17 @@ class StudentFile(models.Model):
     def clean(self):
         """Override to validate file size or type if necessary."""
         if self.file.size > 10 * 1024 * 1024:  # Limit to 10MB files
-            raise ValidationError("File size must be under 10MB.")
+            raise ValidationError(_("File size must be under 10MB."))
         super().clean()
 
 
 class StudentHealthRecord(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    record = models.TextField()
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, verbose_name=_("student"))
+    record = models.TextField(verbose_name=_("record"))
+
+    class Meta:
+        verbose_name = _("Student Health Record")
+        verbose_name_plural = _("Student Health Records")
 
     def __str__(self):
         return str(self.student)
@@ -807,16 +915,20 @@ class StudentHealthRecord(models.Model):
     def clean(self):
         """Ensure that the record contains appropriate information."""
         if len(self.record) < 10:  # Ensure some minimal content in the record
-            raise ValidationError("Health record must contain more information.")
+            raise ValidationError(_("Health record must contain more information."))
         super().clean()
 
 
 class MessageToParent(models.Model):
     """Store a message to be shown to parents for a specific amount of time."""
 
-    message = models.TextField(help_text="Message to be shown to Parents.")
-    start_date = models.DateField(default=timezone.now)
-    end_date = models.DateField(default=timezone.now)
+    message = models.TextField(verbose_name=_("message"), help_text=_("Message to be shown to Parents."))
+    start_date = models.DateField(default=timezone.now, verbose_name=_("start date"))
+    end_date = models.DateField(default=timezone.now, verbose_name=_("end date"))
+
+    class Meta:
+        verbose_name = _("Message to Parent")
+        verbose_name_plural = _("Messages to Parents")
 
     def __str__(self):
         return self.message
@@ -824,7 +936,7 @@ class MessageToParent(models.Model):
     def clean(self):
         """Ensure that end date is not before start date."""
         if self.end_date < self.start_date:
-            raise ValidationError("End date cannot be before the start date.")
+            raise ValidationError(_("End date cannot be before the start date."))
         super().clean()
 
     @property
@@ -837,9 +949,13 @@ class MessageToParent(models.Model):
 class MessageToTeacher(models.Model):
     """Stores a message to be shown to Teachers for a specific amount of time."""
 
-    message = models.TextField(help_text="Message to be shown to Teachers.")
-    start_date = models.DateField(default=timezone.now)
-    end_date = models.DateField(default=timezone.now)
+    message = models.TextField(verbose_name=_("message"), help_text=_("Message to be shown to Teachers."))
+    start_date = models.DateField(default=timezone.now, verbose_name=_("start date"))
+    end_date = models.DateField(default=timezone.now, verbose_name=_("end date"))
+
+    class Meta:
+        verbose_name = _("Message to Teacher")
+        verbose_name_plural = _("Messages to Teachers")
 
     def __str__(self):
         return self.message
@@ -847,7 +963,7 @@ class MessageToTeacher(models.Model):
     def clean(self):
         """Ensure that end date is not before start date."""
         if self.end_date < self.start_date:
-            raise ValidationError("End date cannot be before the start date.")
+            raise ValidationError(_("End date cannot be before the start date."))
         super().clean()
 
     @property
