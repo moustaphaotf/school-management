@@ -107,6 +107,14 @@ class ExaminationListHandler(models.Model):
     ends_date = models.DateField()
     out_of = models.IntegerField()
     classrooms = models.ManyToManyField(ClassRoom, related_name="class_exams")
+    term = models.ForeignKey(
+        Term,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="exams",
+        help_text="Term this exam belongs to. Used to aggregate marks for term results.",
+    )
     comments = models.CharField(
         max_length=200, blank=True, null=True, help_text="Comments Regarding Exam"
     )
