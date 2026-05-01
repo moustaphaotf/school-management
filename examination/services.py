@@ -291,6 +291,249 @@ def _safe_filename_part(s: str) -> str:
     return "".join(keep) or "x"
 
 
+def build_marks_template_xlsx(
+    exam: ExaminationListHandler, classroom: ClassRoom
+) -> bytes:
+    """Generate an .xlsx file with one row per enrolled student of the
+    classroom and one column per subject allocated to that classroom for
+    the exam's term. The first two columns are admission_number and
+    student_name (read-only context for the user). Mark columns are empty.
+
+    Used by the directeur/prof to download a pre-filled template,
+    fill in the marks offline, then upload via MarksBulkUploadView."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font
+
+    if exam.term is None:
+        raise ValueError("Exam has no term; cannot derive subjects.")
+
+    enrollments = list(
+        StudentClassEnrollment.objects.filter(
+            classroom=classroom, academic_year=exam.term.academic_year
+        )
+        .select_related("student")
+        .order_by("student__last_name", "student__first_name")
+    )
+    allocations = list(
+        AllocatedSubject.objects.filter(
+            class_room=classroom, term=exam.term
+        )
+        .select_related("subject")
+        .order_by("subject__name")
+    )
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"{classroom.id}-{exam.term.name}"[:31]
+
+    headers = ["admission_number", "student_name"] + [
+        a.subject.name for a in allocations
+    ]
+    ws.append(headers)
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+
+    for enr in enrollments:
+        row = [
+            enr.student.admission_number or "",
+            f"{enr.student.last_name or ''} {enr.student.first_name or ''}".strip(),
+        ]
+        row.extend([None] * len(allocations))
+        ws.append(row)
+
+    # Hint row about the max value (informational only, parser ignores it)
+    ws.append(
+        ["", f"max points: {exam.out_of}"] + [exam.out_of] * len(allocations)
+    )
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
+
+
+def parse_marks_xlsx(
+    file_obj,
+    exam: ExaminationListHandler,
+    classroom: ClassRoom,
+    teacher,
+    apply_changes: bool = True,
+) -> dict:
+    """Parse an uploaded .xlsx of marks for one (exam, classroom).
+
+    Expected layout: first row = headers ['admission_number',
+    'student_name', <subject name>, ...]. Subsequent rows = one student
+    each. Empty cells skipped. Final 'hint' row (admission_number empty)
+    is silently ignored.
+
+    Validation phase first — collects all errors. If apply_changes is
+    True and there are no errors, writes atomically. If errors exist,
+    nothing is written.
+
+    Returns: {'created': N, 'updated': N, 'errors': [...], 'total': N}"""
+    from openpyxl import load_workbook
+
+    if exam.term is None:
+        return {
+            "created": 0,
+            "updated": 0,
+            "errors": [{"row": 0, "msg": "Exam has no term."}],
+            "total": 0,
+        }
+
+    wb = load_workbook(filename=file_obj, read_only=True, data_only=True)
+    ws = wb.active
+
+    rows = list(ws.iter_rows(values_only=True))
+    if len(rows) < 2:
+        return {
+            "created": 0,
+            "updated": 0,
+            "errors": [{"row": 0, "msg": "File is empty or has only a header."}],
+            "total": 0,
+        }
+
+    headers = [str(h).strip() if h is not None else "" for h in rows[0]]
+    if not headers or headers[0].lower().replace(" ", "_") != "admission_number":
+        return {
+            "created": 0,
+            "updated": 0,
+            "errors": [
+                {"row": 1, "msg": "First column must be 'admission_number'."}
+            ],
+            "total": 0,
+        }
+
+    # Subject columns are everything from index 2 on, with non-empty header
+    subject_columns: list[tuple[int, Subject]] = []
+    for idx, header in enumerate(headers[2:], start=2):
+        if not header:
+            continue
+        subject = Subject.objects.filter(name__iexact=header).first()
+        if subject is None:
+            return {
+                "created": 0,
+                "updated": 0,
+                "errors": [
+                    {"row": 1, "col": idx + 1, "msg": f"Unknown subject: {header}"}
+                ],
+                "total": 0,
+            }
+        subject_columns.append((idx, subject))
+
+    # Each subject must be allocated to this (classroom, term)
+    for _, subject in subject_columns:
+        if not AllocatedSubject.objects.filter(
+            class_room=classroom, term=exam.term, subject=subject
+        ).exists():
+            return {
+                "created": 0,
+                "updated": 0,
+                "errors": [
+                    {
+                        "row": 1,
+                        "msg": (
+                            f"Subject '{subject.name}' is not allocated to "
+                            "this classroom for the exam's term."
+                        ),
+                    }
+                ],
+                "total": 0,
+            }
+
+    errors: list[dict] = []
+    pending: list[dict] = []  # accumulated valid (subject, enrollment, points)
+
+    for row_idx, row in enumerate(rows[1:], start=2):
+        if not row or row[0] in (None, ""):
+            continue
+        admission_number = str(row[0]).strip()
+        # Skip the trailing 'max points' hint row if it lands here somehow
+        if admission_number.lower().startswith("max"):
+            continue
+        try:
+            enrollment = StudentClassEnrollment.objects.get(
+                classroom=classroom,
+                student__admission_number=admission_number,
+                academic_year=exam.term.academic_year,
+            )
+        except StudentClassEnrollment.DoesNotExist:
+            errors.append(
+                {
+                    "row": row_idx,
+                    "msg": (
+                        f"No enrollment found for admission_number "
+                        f"'{admission_number}' in this classroom."
+                    ),
+                }
+            )
+            continue
+
+        for col_idx, subject in subject_columns:
+            cell = row[col_idx] if col_idx < len(row) else None
+            if cell in (None, ""):
+                continue
+            try:
+                points = float(cell)
+            except (TypeError, ValueError):
+                errors.append(
+                    {
+                        "row": row_idx,
+                        "col": col_idx + 1,
+                        "msg": f"Not a number: {cell!r}",
+                    }
+                )
+                continue
+            if points < 0 or points > exam.out_of:
+                errors.append(
+                    {
+                        "row": row_idx,
+                        "col": col_idx + 1,
+                        "msg": (
+                            f"{points} out of range [0, {exam.out_of}] "
+                            f"for subject {subject.name}"
+                        ),
+                    }
+                )
+                continue
+            pending.append(
+                {
+                    "subject": subject,
+                    "enrollment": enrollment,
+                    "points": points,
+                }
+            )
+
+    if errors or not apply_changes:
+        return {
+            "created": 0,
+            "updated": 0,
+            "errors": errors,
+            "total": 0,
+        }
+
+    created, updated = 0, 0
+    with transaction.atomic():
+        for item in pending:
+            obj, was_created = MarksManagement.objects.update_or_create(
+                exam_name=exam,
+                subject=item["subject"],
+                student=item["enrollment"],
+                defaults={
+                    "points_scored": item["points"],
+                    "created_by": teacher,
+                },
+            )
+            created += 1 if was_created else 0
+            updated += 0 if was_created else 1
+
+    return {
+        "created": created,
+        "updated": updated,
+        "errors": [],
+        "total": created + updated,
+    }
+
+
 def render_class_bulletins_zip(
     classroom: ClassRoom, term: Term
 ) -> tuple[bytes, int, list[str]]:

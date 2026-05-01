@@ -336,6 +336,109 @@ class ClassBulletinsZIPView(APIView):
         return response
 
 
+# --- Bulk Excel: template download + upload ---
+
+
+class MarksTemplateXLSXView(APIView):
+    """GET an .xlsx template pre-filled with the students of a classroom
+    and a column per subject allocated for the exam's term."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, exam_id, classroom_id):
+        exam = get_object_or_404(ExaminationListHandler, pk=exam_id)
+        classroom = get_object_or_404(ClassRoom, pk=classroom_id)
+        try:
+            xlsx_bytes = services.build_marks_template_xlsx(exam, classroom)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        response = HttpResponse(
+            xlsx_bytes,
+            content_type=(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            ),
+        )
+        filename = f"marks_template_exam{exam.id}_classroom{classroom.id}.xlsx"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+
+class MarksBulkUploadView(APIView):
+    """POST multipart .xlsx file, parses marks, validates, persists atomically
+    if no errors. Permission: same as bulk-entry — allocated teacher or admin."""
+
+    permission_classes = [IsTeacherOfSubjectOrAdmin]
+
+    def post(self, request, exam_id, classroom_id):
+        exam = get_object_or_404(ExaminationListHandler, pk=exam_id)
+        classroom = get_object_or_404(ClassRoom, pk=classroom_id)
+
+        file_obj = request.FILES.get("file")
+        if file_obj is None:
+            return Response(
+                {"detail": "No 'file' part in the request."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        teacher = getattr(request.user, "teacher", None)
+        is_admin = request.user.is_superuser or request.user.is_staff
+        if not is_admin and teacher is None:
+            return Response(
+                {"detail": "Authenticated user has no Teacher record."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Permission gate: validate the teacher owns every subject that
+        # appears in the file BEFORE applying. We do a dry-run parse first.
+        dry = services.parse_marks_xlsx(
+            file_obj, exam, classroom, teacher, apply_changes=False
+        )
+        if dry["errors"]:
+            return Response(
+                {
+                    "detail": "Validation failed; no marks written.",
+                    "errors": dry["errors"],
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Re-open the file (read_only mode advanced the cursor); request
+        # files are seekable so we just rewind.
+        file_obj.seek(0)
+        if not is_admin:
+            # Re-parse headers to find subjects referenced, then verify
+            # allocation. parse_marks_xlsx already verified allocation,
+            # but here we layer the teacher-ownership check.
+            from openpyxl import load_workbook
+            wb = load_workbook(filename=file_obj, read_only=True, data_only=True)
+            ws = wb.active
+            first_row = next(ws.iter_rows(min_row=1, max_row=1, values_only=True))
+            headers = [str(h).strip() if h is not None else "" for h in first_row]
+            for header in headers[2:]:
+                if not header:
+                    continue
+                subject = Subject.objects.filter(name__iexact=header).first()
+                if subject is None:
+                    continue
+                if not teacher_owns_subject(teacher, subject.id, classroom.id):
+                    return Response(
+                        {
+                            "detail": (
+                                f"You are not allocated to subject "
+                                f"'{subject.name}' for this classroom."
+                            )
+                        },
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+            file_obj.seek(0)
+
+        result = services.parse_marks_xlsx(
+            file_obj, exam, classroom, teacher, apply_changes=True
+        )
+        return Response(result, status=status.HTTP_200_OK)
+
+
 # --- Class ranking ---
 
 

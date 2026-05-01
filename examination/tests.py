@@ -540,3 +540,151 @@ class MarksPermissionTests(TestCase):
         client.force_authenticate(user=self.teacher_fr.user)  # Fr teacher reads Math
         response = client.get("/api/examination/marks/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class MarksXlsxTests(TestCase):
+    """Build template + parse roundtrip on the bulk Excel upload."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.scale = GradeScale.objects.get(name="/20")
+        gl = GradeLevel.objects.create(id=600, name="Collège", grade_scale=cls.scale)
+        cl = ClassLevel.objects.create(id=601, name="6eme", grade_level=gl)
+        cls.classroom = _create_classroom(cl, "XL")
+        cls.year = AcademicYear.objects.create(
+            name="2025-26", start_date=date(2025, 9, 1), active_year=True
+        )
+        cls.term = Term.objects.create(
+            name="T1",
+            academic_year=cls.year,
+            start_date=date(2025, 9, 1),
+            end_date=date(2025, 12, 20),
+        )
+        cls.math = Subject.objects.create(name="Math")
+        cls.francais = Subject.objects.create(name="Francais")
+        teacher = cls.classroom.class_teacher
+        for sub, coef in [(cls.math, Decimal("4")), (cls.francais, Decimal("2"))]:
+            AllocatedSubject.objects.create(
+                teacher_name=teacher,
+                subject=sub,
+                academic_year=cls.year,
+                term=cls.term,
+                class_room=cls.classroom,
+                coefficient=coef,
+                weekly_periods=4,
+            )
+
+        cls.exam = _make_exam("DS1 T1", cls.classroom, cls.term, out_of=20)
+        cls.alice = _enroll(cls.classroom, cls.year, "Alice")
+        cls.bob = _enroll(cls.classroom, cls.year, "Bob")
+
+    def test_template_has_expected_headers_and_rows(self):
+        from examination.services import build_marks_template_xlsx
+        from openpyxl import load_workbook
+
+        xlsx = build_marks_template_xlsx(self.exam, self.classroom)
+        wb = load_workbook(io.BytesIO(xlsx), read_only=True)
+        ws = wb.active
+        rows = list(ws.iter_rows(values_only=True))
+        # Header row
+        self.assertEqual(rows[0][0], "admission_number")
+        self.assertEqual(rows[0][1], "student_name")
+        # Subject names are lowercased on save; columns sorted by name
+        self.assertIn("math", rows[0])
+        self.assertIn("francais", rows[0])
+        # 2 student rows + 1 hint row = 3 data rows after header
+        self.assertEqual(len(rows), 4)
+
+    def _build_filled_xlsx(self, payload_rows):
+        """Helper: create an in-memory xlsx with the given header + rows."""
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["admission_number", "student_name", "Math", "Francais"])
+        for row in payload_rows:
+            ws.append(row)
+        buf = io.BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+        return buf
+
+    def test_upload_creates_and_updates_marks(self):
+        from examination.services import parse_marks_xlsx
+
+        f = self._build_filled_xlsx(
+            [
+                [self.alice.student.admission_number, "alice test", 16, 14],
+                [self.bob.student.admission_number, "bob test", 12, 18],
+            ]
+        )
+        result = parse_marks_xlsx(
+            f, self.exam, self.classroom, self.classroom.class_teacher
+        )
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(result["created"], 4)
+        self.assertEqual(result["updated"], 0)
+
+        # Re-upload with one updated value -> updated, not created
+        f2 = self._build_filled_xlsx(
+            [
+                [self.alice.student.admission_number, "alice test", 18, 14],
+            ]
+        )
+        result2 = parse_marks_xlsx(
+            f2, self.exam, self.classroom, self.classroom.class_teacher
+        )
+        self.assertEqual(result2["errors"], [])
+        self.assertEqual(result2["updated"], 2)
+        self.assertEqual(
+            MarksManagement.objects.get(
+                exam_name=self.exam, subject=self.math, student=self.alice
+            ).points_scored,
+            18,
+        )
+
+    def test_upload_with_out_of_range_value_writes_nothing(self):
+        from examination.services import parse_marks_xlsx
+
+        f = self._build_filled_xlsx(
+            [
+                [self.alice.student.admission_number, "alice", 16, 14],
+                [self.bob.student.admission_number, "bob", 25, 12],  # 25 > 20
+            ]
+        )
+        result = parse_marks_xlsx(
+            f, self.exam, self.classroom, self.classroom.class_teacher
+        )
+        # One error, all-or-nothing => 0 written
+        self.assertEqual(len(result["errors"]), 1)
+        self.assertEqual(result["created"], 0)
+        self.assertEqual(MarksManagement.objects.count(), 0)
+
+    def test_upload_with_unknown_admission_number(self):
+        from examination.services import parse_marks_xlsx
+
+        f = self._build_filled_xlsx(
+            [
+                ["NOPE-999", "ghost", 16, 14],
+            ]
+        )
+        result = parse_marks_xlsx(
+            f, self.exam, self.classroom, self.classroom.class_teacher
+        )
+        self.assertEqual(len(result["errors"]), 1)
+        self.assertIn("NOPE-999", result["errors"][0]["msg"])
+
+    def test_upload_skips_blank_cells(self):
+        from examination.services import parse_marks_xlsx
+
+        f = self._build_filled_xlsx(
+            [
+                [self.alice.student.admission_number, "alice", 16, None],
+                [self.bob.student.admission_number, "bob", None, 18],
+            ]
+        )
+        result = parse_marks_xlsx(
+            f, self.exam, self.classroom, self.classroom.class_teacher
+        )
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(result["created"], 2)  # only the non-blank cells

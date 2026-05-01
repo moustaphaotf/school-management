@@ -13,8 +13,10 @@ from examination.views import (
     GradeScaleRuleDetailView,
     GradeScaleRuleListView,
     MarksBulkEntryView,
+    MarksBulkUploadView,
     MarksDetailView,
     MarksListView,
+    MarksTemplateXLSXView,
     ResultDetailView,
     ResultListView,
 )
@@ -45,6 +47,17 @@ urlpatterns = [
     path("marks/", MarksListView.as_view(), name="mark-list"),
     path("marks/<int:pk>/", MarksDetailView.as_view(), name="mark-detail"),
     path("marks/bulk/", MarksBulkEntryView.as_view(), name="mark-bulk-entry"),
+    # Excel template + bulk upload (per exam x classroom)
+    path(
+        "exams/<int:exam_id>/classrooms/<int:classroom_id>/marks-template/",
+        MarksTemplateXLSXView.as_view(),
+        name="marks-template-xlsx",
+    ),
+    path(
+        "exams/<int:exam_id>/classrooms/<int:classroom_id>/marks-upload/",
+        MarksBulkUploadView.as_view(),
+        name="marks-bulk-upload",
+    ),
     # Class marks grid
     path(
         "classrooms/<int:classroom_id>/exams/<int:exam_id>/marks/",
