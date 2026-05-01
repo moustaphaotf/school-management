@@ -169,6 +169,17 @@ class MarksManagement(models.Model):
         ):
             if self.points_scored < 0 or self.points_scored > self.exam_name.out_of:
                 raise ValidationError(
-                    f"Points scored must be between 0 and {self.exam_name.out_of}."
+                    {
+                        "points_scored": (
+                            f"Points scored must be between 0 and "
+                            f"{self.exam_name.out_of}."
+                        )
+                    }
                 )
         super(MarksManagement, self).clean()
+
+    def save(self, *args, **kwargs):
+        # Run model validation on every write so direct ORM/admin/shell
+        # writes are protected, not just DRF.
+        self.full_clean()
+        super().save(*args, **kwargs)

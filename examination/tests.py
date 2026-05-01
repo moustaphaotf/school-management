@@ -952,3 +952,90 @@ class PaginationTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # We have 55 rows total; max_page_size=200 caps but doesn't add data
         self.assertEqual(len(response.json()["results"]), 55)
+
+
+class MarksCleanValidationTests(TestCase):
+    """Verify MarksManagement.save() runs full_clean() so out-of-range
+    points_scored is rejected on every write path."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from django.core.exceptions import ValidationError as DjangoValidationError
+
+        cls.DjangoValidationError = DjangoValidationError
+        cls.scale = GradeScale.objects.get(name="/20")
+        gl = GradeLevel.objects.create(id=1000, name="Collège", grade_scale=cls.scale)
+        cl = ClassLevel.objects.create(id=1001, name="6eme", grade_level=gl)
+        cls.classroom = _create_classroom(cl, "CV")
+        cls.year = AcademicYear.objects.create(
+            name="2025-26", start_date=date(2025, 9, 1), active_year=True
+        )
+        cls.term = Term.objects.create(
+            name="T1",
+            academic_year=cls.year,
+            start_date=date(2025, 9, 1),
+            end_date=date(2025, 12, 20),
+        )
+        cls.subject = Subject.objects.create(name="Math")
+        AllocatedSubject.objects.create(
+            teacher_name=cls.classroom.class_teacher,
+            subject=cls.subject,
+            academic_year=cls.year,
+            term=cls.term,
+            class_room=cls.classroom,
+            coefficient=Decimal("1"),
+            weekly_periods=4,
+        )
+        cls.exam = _make_exam("DS1", cls.classroom, cls.term, out_of=20)
+        cls.enr = _enroll(cls.classroom, cls.year, "X")
+        cls.admin = CustomUser.objects.create_superuser(
+            email="admin-cv@test.gn", password="x"
+        )
+
+    def test_direct_orm_write_with_out_of_range_raises(self):
+        with self.assertRaises(self.DjangoValidationError):
+            MarksManagement.objects.create(
+                exam_name=self.exam,
+                points_scored=25,  # out_of is 20
+                subject=self.subject,
+                student=self.enr,
+                created_by=self.classroom.class_teacher,
+            )
+
+    def test_direct_orm_write_with_negative_raises(self):
+        with self.assertRaises(self.DjangoValidationError):
+            MarksManagement.objects.create(
+                exam_name=self.exam,
+                points_scored=-1,
+                subject=self.subject,
+                student=self.enr,
+                created_by=self.classroom.class_teacher,
+            )
+
+    def test_drf_post_out_of_range_returns_400(self):
+        client = APIClient()
+        client.force_authenticate(user=self.admin)
+        response = client.post(
+            "/api/examination/marks/",
+            {
+                "exam_name": self.exam.id,
+                "points_scored": 99,
+                "subject": self.subject.id,
+                "student": self.enr.id,
+                "created_by": self.classroom.class_teacher.id,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("points_scored", str(response.json()))
+
+    def test_valid_write_succeeds(self):
+        # Sanity: full_clean shouldn't reject a valid write
+        mark = MarksManagement.objects.create(
+            exam_name=self.exam,
+            points_scored=15,
+            subject=self.subject,
+            student=self.enr,
+            created_by=self.classroom.class_teacher,
+        )
+        self.assertEqual(mark.points_scored, 15)
