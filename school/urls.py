@@ -54,6 +54,7 @@ urlpatterns = [
     path("api/attendance/", include("api.attendance.urls")),
     path("api/assignments/", include("api.assignments.urls")),
     path("api/blog/", include("api.blog.urls")),
+    path("api/examination/", include("api.examination.urls")),
     path("api/finance/", include("api.finance.urls")),
     # path('api/journals/', include('api.journals.urls')),
     # path("api/notes/", include("api.notes.urls")),
