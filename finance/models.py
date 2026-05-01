@@ -1,6 +1,7 @@
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from decimal import Decimal
 from administration.models import Term
 from users.models import Accountant, CustomUser as User
@@ -55,9 +56,9 @@ class DebtRecord(models.Model):
         """
         amount = Decimal(amount)
         if amount <= 0:
-            raise ValueError("Payment must be positive.")
+            raise ValueError(_("Payment must be positive."))
         if self.balance < amount:
-            raise ValueError("Cannot pay more than the remaining balance.")
+            raise ValueError(_("Cannot pay more than the remaining balance."))
         self.amount_paid += amount
         self.save()
 
@@ -109,7 +110,7 @@ class Receipt(models.Model):
 
     def clean(self):
         if self.amount is not None and self.amount <= 0:
-            raise ValidationError("Amount must be a positive value.")
+            raise ValidationError(_("Amount must be a positive value."))
 
     def save(self, *args, **kwargs):
         if not self.receipt_number:
@@ -153,7 +154,7 @@ class Payment(models.Model):
 
     def clean(self):
         if self.amount is not None and self.amount <= 0:
-            raise ValidationError("Amount must be a positive value.")
+            raise ValidationError(_("Amount must be a positive value."))
 
     def save(self, *args, **kwargs):
         if not self.payment_number:
@@ -193,9 +194,9 @@ class PaymentRecord(models.Model):
 
     def save(self, *args, **kwargs):
         if self.amount <= 0:
-            raise ValidationError("Payment amount must be positive.")
+            raise ValidationError(_("Payment amount must be positive."))
         if self.debt_record.balance < self.amount:
-            raise ValidationError("Payment exceeds remaining balance for this debt.")
+            raise ValidationError(_("Payment exceeds remaining balance for this debt."))
 
         # Apply payment to debt
         self.debt_record.apply_payment(self.amount)

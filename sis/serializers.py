@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils.translation import gettext as _
 
 from academic.models import (
     StudentsMedicalHistory,
@@ -108,13 +109,13 @@ class StudentSerializer(serializers.ModelSerializer):
         print("validated_data:", data)
         class_level_name = data.pop("class_level", None)
         if not class_level_name:
-            raise serializers.ValidationError("Missing 'class_level' field.")
+            raise serializers.ValidationError(_("Missing 'class_level' field."))
 
         try:
             class_level = ClassLevel.objects.get(name__iexact=class_level_name)
         except ClassLevel.DoesNotExist:
             raise serializers.ValidationError(
-                f"Class level '{class_level_name}' does not exist."
+                _("Class level '%(level)s' does not exist.") % {"level": class_level_name}
             )
         data["class_level"] = class_level
         date_of_birth = (data.get("date_of_birth", "2000-01-01"),)
@@ -127,7 +128,7 @@ class StudentSerializer(serializers.ModelSerializer):
                 data["class_of_year"] = class_year
             except ClassYear.DoesNotExist:
                 raise serializers.ValidationError(
-                    f"Class year '{class_of_year_name}' does not exist."
+                    _("Class year '%(year)s' does not exist.") % {"year": class_of_year_name}
                 )
 
         # Normalize names
@@ -161,7 +162,7 @@ class StudentSerializer(serializers.ModelSerializer):
                 instance.class_level = class_level
             except ClassLevel.DoesNotExist:
                 raise serializers.ValidationError(
-                    f"Class level '{class_level_name}' does not exist."
+                    _("Class level '%(level)s' does not exist.") % {"level": class_level_name}
                 )
 
         class_year_name = validated_data.pop("class_of_year", None)
@@ -171,7 +172,7 @@ class StudentSerializer(serializers.ModelSerializer):
                 instance.class_of_year = class_year
             except ClassYear.DoesNotExist:
                 raise serializers.ValidationError(
-                    f"Class year '{class_year_name}' does not exist."
+                    _("Class year '%(year)s' does not exist.") % {"year": class_year_name}
                 )
 
         instance.first_name = validated_data.get(

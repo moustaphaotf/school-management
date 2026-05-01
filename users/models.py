@@ -12,13 +12,13 @@ from .managers import CustomUserManager
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name="first name"
+        max_length=100, blank=True, null=True, verbose_name=_("first name")
     )
     middle_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name="middle name"
+        max_length=100, blank=True, null=True, verbose_name=_("middle name")
     )
     last_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name="last name"
+        max_length=100, blank=True, null=True, verbose_name=_("last name")
     )
     phone_number = models.CharField(blank=True, null=True)
     email = models.EmailField(_("email address"), unique=True)
@@ -66,7 +66,7 @@ class Accountant(models.Model):
     alt_email = models.EmailField(
         blank=True,
         null=True,
-        help_text="Personal Email apart from the one given by the school",
+        help_text=_("Personal Email apart from the one given by the school"),
     )
     date_of_birth = models.DateField(blank=True, null=True)
     image = models.ImageField(upload_to="Employee_images", blank=True, null=True)

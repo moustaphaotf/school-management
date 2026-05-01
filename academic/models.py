@@ -17,7 +17,7 @@ from administration.common_objs import *
 class Department(models.Model):
     name = models.CharField(max_length=255, unique=True)
     order_rank = models.IntegerField(
-        blank=True, null=True, help_text="Rank for subject reports"
+        blank=True, null=True, help_text=_("Rank for subject reports")
     )
 
     class Meta:
@@ -36,9 +36,9 @@ class Subject(models.Model):
     name = models.CharField(max_length=255, unique=True)
     subject_code = models.CharField(max_length=10, blank=True, null=True, unique=True)
     is_selectable = models.BooleanField(
-        default=False, help_text="Select if subject is optional"
+        default=False, help_text=_("Select if subject is optional")
     )
-    graded = models.BooleanField(default=True, help_text="Teachers can submit grades")
+    graded = models.BooleanField(default=True, help_text=_("Teachers can submit grades"))
     description = models.CharField(max_length=255, blank=True)
     department = models.ForeignKey(
         Department, on_delete=models.CASCADE, blank=True, null=True
@@ -49,8 +49,8 @@ class Subject(models.Model):
 
     class Meta:
         ordering = ["subject_code"]
-        verbose_name = "Subject"
-        verbose_name_plural = "Subjects"
+        verbose_name = _("Subject")
+        verbose_name_plural = _("Subjects")
 
     def save(self, *args, **kwargs):
         # Generate description
@@ -146,14 +146,14 @@ class Teacher(models.Model):
 
 
 class GradeLevel(models.Model):
-    id = models.IntegerField(unique=True, primary_key=True, verbose_name="Grade Level")
+    id = models.IntegerField(unique=True, primary_key=True, verbose_name=_("Grade Level"))
     name = models.CharField(max_length=150, unique=True)
     grade_scale = models.ForeignKey(
         "examination.GradeScale",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
-        help_text="Grading scale used for this level (e.g., /10 for primary, /20 for college/high-school).",
+        help_text=_("Grading scale used for this level (e.g., /10 for primary, /20 for college/high-school)."),
     )
 
     class Meta:
@@ -164,7 +164,7 @@ class GradeLevel(models.Model):
 
 
 class ClassLevel(models.Model):
-    id = models.IntegerField(unique=True, primary_key=True, verbose_name="Class Level")
+    id = models.IntegerField(unique=True, primary_key=True, verbose_name=_("Class Level"))
     name = models.CharField(max_length=150, unique=True)
     grade_level = models.ForeignKey(
         GradeLevel, blank=True, null=True, on_delete=models.SET_NULL
@@ -178,9 +178,9 @@ class ClassLevel(models.Model):
 
 
 class ClassYear(models.Model):
-    year = models.CharField(max_length=100, unique=True, help_text="Example 2020")
+    year = models.CharField(max_length=100, unique=True, help_text=_("Example 2020"))
     full_name = models.CharField(
-        max_length=255, help_text="Example Class of 2020", blank=True
+        max_length=255, help_text=_("Example Class of 2020"), blank=True
     )
 
     def __str__(self):
@@ -244,7 +244,7 @@ class ClassRoom(models.Model):
             and self.capacity is not None
             and self.occupied_sits > self.capacity
         ):
-            raise ValidationError("Occupied sits cannot exceed the capacity.")
+            raise ValidationError(_("Occupied sits cannot exceed the capacity."))
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -286,12 +286,12 @@ class AllocatedSubject(models.Model):
         max_digits=4,
         decimal_places=2,
         default=1.0,
-        help_text="Coefficient applied to this subject's average when computing the term general average.",
+        help_text=_("Coefficient applied to this subject's average when computing the term general average."),
     )
-    weekly_periods = models.IntegerField(help_text="Total number of periods per week.")
+    weekly_periods = models.IntegerField(help_text=_("Total number of periods per week."))
     max_daily_periods = models.IntegerField(
         default=2,
-        help_text="Maximum number of periods allowed per day for this subject.",
+        help_text=_("Maximum number of periods allowed per day for this subject."),
     )
 
     class Meta:
@@ -316,13 +316,13 @@ class Parent(models.Model):
         blank=True,
     )
     first_name = models.CharField(
-        max_length=300, verbose_name="First Name", blank=True, null=True
+        max_length=300, verbose_name=_("First Name"), blank=True, null=True
     )
     middle_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name="Middle Name"
+        max_length=100, blank=True, null=True, verbose_name=_("Middle Name")
     )
     last_name = models.CharField(
-        max_length=300, verbose_name="Last Name", blank=True, null=True
+        max_length=300, verbose_name=_("Last Name"), blank=True, null=True
     )
     gender = models.CharField(
         max_length=10, choices=GENDER_CHOICE, blank=True, null=True
@@ -334,19 +334,19 @@ class Parent(models.Model):
     )
     address = models.CharField(max_length=255, blank=True, null=True)
     phone_number = models.CharField(
-        max_length=150, unique=True, help_text="Personal phone number"
+        max_length=150, unique=True, help_text=_("Personal phone number")
     )
     national_id = models.CharField(max_length=100, blank=True, null=True)
     occupation = models.CharField(
-        max_length=255, blank=True, null=True, help_text="Current occupation"
+        max_length=255, blank=True, null=True, help_text=_("Current occupation")
     )
     monthly_income = models.FloatField(
-        help_text="Parent's average monthly income", blank=True, null=True
+        help_text=_("Parent's average monthly income"), blank=True, null=True
     )
     single_parent = models.BooleanField(
-        default=False, blank=True, help_text="Is he/she a single parent"
+        default=False, blank=True, help_text=_("Is he/she a single parent")
     )
-    alt_email = models.EmailField(blank=True, null=True, help_text="Personal email")
+    alt_email = models.EmailField(blank=True, null=True, help_text=_("Personal email"))
     date = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to="Parent_images", blank=True)
     inactive = models.BooleanField(default=False)
@@ -488,7 +488,7 @@ class Student(models.Model):
     def save(self, *args, **kwargs):
         # Validate parent_contact presence
         if not self.parent_contact:
-            raise ValidationError("Parent contact is required.")
+            raise ValidationError(_("Parent contact is required."))
 
         # Normalize name fields
         self.first_name = self.first_name.lower() if self.first_name else ""
@@ -599,7 +599,9 @@ class StudentClassEnrollment(models.Model):
         # Validate that the classroom matches the student's class level
         if self.classroom.name != self.student.class_level:
             raise ValidationError(
-                f"The classroom '{self.classroom.name}' does not match the student's class level '{self.student.class_level}'."
+                _(
+                    "The classroom '%(classroom)s' does not match the student's class level '%(level)s'."
+                ) % {"classroom": self.classroom.name, "level": self.student.class_level}
             )
 
         # Validate that the classroom has available seats
@@ -610,7 +612,8 @@ class StudentClassEnrollment(models.Model):
             and self.classroom.occupied_sits >= self.classroom.capacity
         ):
             raise ValidationError(
-                f"The classroom '{self.classroom}' has reached its maximum capacity."
+                _("The classroom '%(classroom)s' has reached its maximum capacity.")
+                % {"classroom": self.classroom}
             )
 
         # Check for duplicate StudentClass assignments
@@ -624,7 +627,9 @@ class StudentClassEnrollment(models.Model):
             .exists()
         ):
             raise ValidationError(
-                f"The student '{self.student}' is already assigned to this class for the academic year '{self.academic_year}'."
+                _(
+                    "The student '%(student)s' is already assigned to this class for the academic year '%(year)s'."
+                ) % {"student": self.student, "year": self.academic_year}
             )
 
     def update_class_table(self, increment=True):
@@ -641,13 +646,13 @@ class StudentClassEnrollment(models.Model):
                 # Check capacity before incrementing
                 if selected_class.occupied_sits >= selected_class.capacity:
                     raise ValidationError(
-                        "This class has reached its maximum capacity."
+                        _("This class has reached its maximum capacity.")
                     )
                 selected_class.occupied_sits += 1
             else:
                 # Ensure occupied_sits doesn't go below zero
                 if selected_class.occupied_sits <= 0:
-                    raise ValidationError("Cannot have negative occupied sits.")
+                    raise ValidationError(_("Cannot have negative occupied sits."))
                 selected_class.occupied_sits -= 1
 
             # Save the updated classroom instance
@@ -693,18 +698,18 @@ class StudentsMedicalHistory(models.Model):
         # You can add validation if a file is uploaded and ensure it meets the constraints
         if not self.history and not self.file:
             raise ValidationError(
-                "At least one of 'history' or 'file' must be provided."
+                _("At least one of 'history' or 'file' must be provided.")
             )
 
 
 class StudentsPreviousAcademicHistory(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    former_school = models.CharField(max_length=255, help_text="Former school name")
+    former_school = models.CharField(max_length=255, help_text=_("Former school name"))
     last_gpa = models.FloatField()
     notes = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Indicate student's academic performance according to your observation",
+        help_text=_("Indicate student's academic performance according to your observation"),
     )
     academic_record = models.FileField(
         upload_to="students_former_academic_files", blank=True
@@ -716,7 +721,7 @@ class StudentsPreviousAcademicHistory(models.Model):
     def clean(self):
         # You can add validation for the file field if needed
         if not self.former_school:
-            raise ValidationError("Former school name is required.")
+            raise ValidationError(_("Former school name is required."))
 
 
 class Dormitory(models.Model):

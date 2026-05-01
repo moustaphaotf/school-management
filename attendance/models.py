@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 from academic.models import Student
 from users.models import CustomUser, Accountant
@@ -12,27 +13,27 @@ class AttendanceStatus(models.Model):
     name = models.CharField(
         max_length=255,
         unique=True,
-        help_text='"Present" will not be saved but may show as an option for teachers.',
+        help_text=_('"Present" will not be saved but may show as an option for teachers.'),
     )
     code = models.CharField(
         max_length=10,
         unique=True,
-        help_text="Short code used on attendance reports. Example: 'A' might be the code for 'Absent'.",
+        help_text=_("Short code used on attendance reports. Example: 'A' might be the code for 'Absent'."),
     )
     excused = models.BooleanField(default=False)
     absent = models.BooleanField(
-        default=False, help_text="Used for different types of absent statuses."
+        default=False, help_text=_("Used for different types of absent statuses.")
     )
     late = models.BooleanField(
-        default=False, help_text="Used for tracking late statuses."
+        default=False, help_text=_("Used for tracking late statuses.")
     )
     half = models.BooleanField(
         default=False,
-        help_text="Indicates half-day attendance. Do not check absent, otherwise it will double count.",
+        help_text=_("Indicates half-day attendance. Do not check absent, otherwise it will double count."),
     )
 
     class Meta:
-        verbose_name_plural = "Attendance Statuses"
+        verbose_name_plural = _("Attendance Statuses")
 
     def __str__(self):
         return self.name

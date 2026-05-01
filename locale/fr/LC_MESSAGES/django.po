@@ -1,0 +1,405 @@
+# French translations for school-management project.
+# Copyright (C) school-management contributors
+# This file is distributed under the same license as the school-management package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: school-management\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-01 12:00+0000\n"
+"PO-Revision-Date: 2026-05-01 12:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# --- administration/common_objs.py ---
+
+msgid "One"
+msgstr "Un"
+
+msgid "Two"
+msgstr "Deux"
+
+msgid "Three"
+msgstr "Trois"
+
+msgid "Four"
+msgstr "Quatre"
+
+msgid "Male"
+msgstr "Masculin"
+
+msgid "Female"
+msgstr "Féminin"
+
+msgid "Other"
+msgstr "Autre"
+
+msgid "Islam"
+msgstr "Islam"
+
+msgid "Christian"
+msgstr "Chrétien"
+
+msgid "Father"
+msgstr "Père"
+
+msgid "Mother"
+msgstr "Mère"
+
+msgid "Guardian"
+msgstr "Tuteur"
+
+msgid "boarding school"
+msgstr "Internat"
+
+msgid "day school"
+msgstr "École de jour"
+
+msgid "boarding-day school"
+msgstr "Internat et externat"
+
+msgid "Boys School"
+msgstr "École de garçons"
+
+msgid "Girl School"
+msgstr "École de filles"
+
+msgid "Mixed"
+msgstr "Mixte"
+
+msgid "Government"
+msgstr "Public"
+
+msgid "Private"
+msgstr "Privé"
+
+msgid "Present"
+msgstr "Présent"
+
+msgid "Absent"
+msgstr "Absent"
+
+msgid "Holiday"
+msgstr "Jour férié"
+
+msgid "Sick"
+msgstr "Malade"
+
+# --- settings.py ---
+
+msgid "French"
+msgstr "Français"
+
+msgid "English"
+msgstr "Anglais"
+
+# --- administration/models.py ---
+
+msgid "User agent. We can use this to determine operating system and browser in use."
+msgstr "Agent utilisateur. Permet de déterminer le système d'exploitation et le navigateur utilisé."
+
+msgid "DANGER..!!!! If marked, this will be the default School Information System Wide..."
+msgstr "DANGER !!!! Si coché, ceci sera le système d'information scolaire par défaut."
+
+msgid "DANGER!! This is the current school year. There can only be one and setting this will remove it from other years. If you want to change the active year, click Admin, Change School Year."
+msgstr "DANGER !! Il s'agit de l'année scolaire en cours. Il ne peut y en avoir qu'une seule. Si vous souhaitez changer l'année active, cliquez sur Admin > Changer l'année scolaire."
+
+msgid "End date must be after start date."
+msgstr "La date de fin doit être postérieure à la date de début."
+
+msgid "The term this event belongs to"
+msgstr "Le trimestre auquel appartient cet événement"
+
+msgid "Name of the event (e.g., Midterm Exams, Eid Holiday)"
+msgstr "Nom de l'événement (ex. : Examens de mi-trimestre, Fête de l'Aïd)"
+
+msgid "Optional details about the event"
+msgstr "Détails optionnels sur l'événement"
+
+msgid "Start date must be within the term's duration."
+msgstr "La date de début doit se situer dans la durée du trimestre."
+
+msgid "End date must be within the term's duration."
+msgstr "La date de fin doit se situer dans la durée du trimestre."
+
+msgid "Examination Period"
+msgstr "Période d'examens"
+
+msgid "Graduation Day"
+msgstr "Jour de remise des diplômes"
+
+msgid "Student Leave"
+msgstr "Congé scolaire"
+
+msgid "Other Event"
+msgstr "Autre événement"
+
+# --- academic/models.py ---
+
+msgid "Rank for subject reports"
+msgstr "Rang pour les relevés de notes par matière"
+
+msgid "Select if subject is optional"
+msgstr "Cocher si la matière est optionnelle"
+
+msgid "Teachers can submit grades"
+msgstr "Les enseignants peuvent soumettre des notes"
+
+msgid "Subject"
+msgstr "Matière"
+
+msgid "Subjects"
+msgstr "Matières"
+
+msgid "Grade Level"
+msgstr "Niveau scolaire"
+
+msgid "Grading scale used for this level (e.g., /10 for primary, /20 for college/high-school)."
+msgstr "Barème de notation utilisé pour ce niveau (ex. : /10 pour le primaire, /20 pour le collège/lycée)."
+
+msgid "Class Level"
+msgstr "Classe"
+
+msgid "Example 2020"
+msgstr "Exemple : 2020"
+
+msgid "Example Class of 2020"
+msgstr "Exemple : Promotion 2020"
+
+msgid "Coefficient applied to this subject's average when computing the term general average."
+msgstr "Coefficient appliqué à la moyenne de cette matière lors du calcul de la moyenne générale du trimestre."
+
+msgid "Total number of periods per week."
+msgstr "Nombre total de périodes par semaine."
+
+msgid "Maximum number of periods allowed per day for this subject."
+msgstr "Nombre maximum de périodes autorisées par jour pour cette matière."
+
+msgid "First Name"
+msgstr "Prénom"
+
+msgid "Middle Name"
+msgstr "Deuxième prénom"
+
+msgid "Last Name"
+msgstr "Nom de famille"
+
+msgid "Personal phone number"
+msgstr "Numéro de téléphone personnel"
+
+msgid "Current occupation"
+msgstr "Profession actuelle"
+
+msgid "Parent's average monthly income"
+msgstr "Revenu mensuel moyen du parent"
+
+msgid "Is he/she a single parent"
+msgstr "Est-il/elle un parent isolé ?"
+
+msgid "Personal email"
+msgstr "Adresse e-mail personnelle"
+
+msgid "Parent contact is required."
+msgstr "Le contact du parent est obligatoire."
+
+msgid "Occupied sits cannot exceed the capacity."
+msgstr "Le nombre de places occupées ne peut pas dépasser la capacité."
+
+msgid "The classroom '%(classroom)s' does not match the student's class level '%(level)s'."
+msgstr "La classe « %(classroom)s » ne correspond pas au niveau scolaire de l'élève « %(level)s »."
+
+msgid "The classroom '%(classroom)s' has reached its maximum capacity."
+msgstr "La classe « %(classroom)s » a atteint sa capacité maximale."
+
+msgid "The student '%(student)s' is already assigned to this class for the academic year '%(year)s'."
+msgstr "L'élève « %(student)s » est déjà inscrit dans cette classe pour l'année scolaire « %(year)s »."
+
+msgid "This class has reached its maximum capacity."
+msgstr "Cette classe a atteint sa capacité maximale."
+
+msgid "Cannot have negative occupied sits."
+msgstr "Le nombre de places occupées ne peut pas être négatif."
+
+msgid "At least one of 'history' or 'file' must be provided."
+msgstr "Au moins un des champs « historique » ou « fichier » doit être renseigné."
+
+msgid "Former school name"
+msgstr "Nom de l'ancien établissement"
+
+msgid "Indicate student's academic performance according to your observation"
+msgstr "Indiquer les performances scolaires de l'élève selon votre observation"
+
+msgid "Former school name is required."
+msgstr "Le nom de l'ancien établissement est obligatoire."
+
+# --- users/models.py ---
+
+msgid "first name"
+msgstr "prénom"
+
+msgid "middle name"
+msgstr "deuxième prénom"
+
+msgid "last name"
+msgstr "nom de famille"
+
+msgid "email address"
+msgstr "adresse e-mail"
+
+msgid "Personal Email apart from the one given by the school"
+msgstr "Adresse e-mail personnelle, différente de celle fournie par l'établissement"
+
+# --- finance/models.py ---
+
+msgid "Payment must be positive."
+msgstr "Le montant du paiement doit être positif."
+
+msgid "Cannot pay more than the remaining balance."
+msgstr "Le paiement ne peut pas dépasser le solde restant."
+
+msgid "Amount must be a positive value."
+msgstr "Le montant doit être une valeur positive."
+
+msgid "Payment amount must be positive."
+msgstr "Le montant du paiement doit être positif."
+
+msgid "Payment exceeds remaining balance for this debt."
+msgstr "Le paiement dépasse le solde restant pour cette dette."
+
+# --- attendance/models.py ---
+
+msgid "\"Present\" will not be saved but may show as an option for teachers."
+msgstr "« Présent » ne sera pas enregistré mais peut s'afficher comme option pour les enseignants."
+
+msgid "Short code used on attendance reports. Example: 'A' might be the code for 'Absent'."
+msgstr "Code court utilisé dans les rapports de présence. Exemple : « A » pourrait être le code pour « Absent »."
+
+msgid "Used for different types of absent statuses."
+msgstr "Utilisé pour différents types de statuts d'absence."
+
+msgid "Used for tracking late statuses."
+msgstr "Utilisé pour suivre les retards."
+
+msgid "Indicates half-day attendance. Do not check absent, otherwise it will double count."
+msgstr "Indique une présence demi-journée. Ne pas cocher « absent », sinon le comptage sera doublé."
+
+msgid "Attendance Statuses"
+msgstr "Statuts de présence"
+
+# --- examination/models.py ---
+
+msgid "Either a letter grade or numeric scale must be provided."
+msgstr "Une note alphabétique ou une échelle numérique doit être fournie."
+
+msgid "If a letter grade is provided, numeric scale must also be provided."
+msgstr "Si une note alphabétique est fournie, l'échelle numérique doit également l'être."
+
+msgid "If a numeric scale is provided, a letter grade must also be provided."
+msgstr "Si une échelle numérique est fournie, une note alphabétique doit également l'être."
+
+msgid "min_grade must be less than max_grade."
+msgstr "La note minimale doit être inférieure à la note maximale."
+
+msgid "GPA must be between 0.0 and 4.0."
+msgstr "La moyenne générale (GPA) doit être comprise entre 0,0 et 4,0."
+
+msgid "CAT GPA must be between 0.0 and 4.0."
+msgstr "La moyenne des contrôles continus (CAT GPA) doit être comprise entre 0,0 et 4,0."
+
+msgid "Term this exam belongs to. Used to aggregate marks for term results."
+msgstr "Trimestre auquel appartient cet examen. Utilisé pour agréger les notes des résultats trimestriels."
+
+msgid "Comments Regarding Exam"
+msgstr "Commentaires concernant l'examen"
+
+msgid "Start date cannot be later than end date."
+msgstr "La date de début ne peut pas être postérieure à la date de fin."
+
+msgid "Points scored must be between 0 and %(out_of)s."
+msgstr "Le score doit être compris entre 0 et %(out_of)s."
+
+# --- academic/serializers.py ---
+
+msgid "Subject code must be at least 3 characters."
+msgstr "Le code de la matière doit comporter au moins 3 caractères."
+
+msgid "This class is already full."
+msgstr "Cette classe est déjà complète."
+
+# --- users/serializers.py ---
+
+msgid "An accountant with this email already exists."
+msgstr "Un comptable avec cette adresse e-mail existe déjà."
+
+msgid "An accountant with this phone number already exists."
+msgstr "Un comptable avec ce numéro de téléphone existe déjà."
+
+msgid "A teacher with this email already exists."
+msgstr "Un enseignant avec cette adresse e-mail existe déjà."
+
+msgid "A teacher with this phone number already exists."
+msgstr "Un enseignant avec ce numéro de téléphone existe déjà."
+
+msgid "Subject specialization should be a list of subject names."
+msgstr "La spécialisation en matières doit être une liste de noms de matières."
+
+msgid "The following subjects do not exist: %(subjects)s"
+msgstr "Les matières suivantes n'existent pas : %(subjects)s"
+
+msgid "A parent with this email already exists."
+msgstr "Un parent avec cette adresse e-mail existe déjà."
+
+msgid "A parent with this phone number already exists."
+msgstr "Un parent avec ce numéro de téléphone existe déjà."
+
+# --- examination/serializers.py ---
+
+msgid "ends_date must be on or after start_date."
+msgstr "La date de fin doit être égale ou postérieure à la date de début."
+
+msgid "out_of must be a positive integer."
+msgstr "La valeur maximale doit être un entier positif."
+
+msgid "points_scored must be between 0 and %(out_of)s."
+msgstr "Le score doit être compris entre 0 et %(out_of)s."
+
+msgid "points_scored %(scored)s exceeds out_of %(out_of)s"
+msgstr "Le score %(scored)s dépasse la valeur maximale %(out_of)s."
+
+# --- sis/serializers.py ---
+
+msgid "Missing 'class_level' field."
+msgstr "Le champ « classe » est manquant."
+
+msgid "Class level '%(level)s' does not exist."
+msgstr "Le niveau scolaire « %(level)s » n'existe pas."
+
+msgid "Class year '%(year)s' does not exist."
+msgstr "L'année de classe « %(year)s » n'existe pas."
+
+# --- academic/validators.py ---
+
+msgid "\"{value}\" already exists."
+msgstr "« {value} » existe déjà."
+
+msgid "\"{value}\" subject already exists."
+msgstr "La matière « {value} » existe déjà."
+
+msgid "\"{value}\" stream already exists."
+msgstr "La filière « {value} » existe déjà."
+
+msgid "Invalid date. The student must be at least {} years old."
+msgstr "Date invalide. L'élève doit avoir au moins {} ans."
+
+msgid "Enter a valid username. This value must follow the pattern: letters/three alphanumeric characters/four digits."
+msgstr "Saisissez un nom d'utilisateur valide. Cette valeur doit respecter le format : lettres/trois caractères alphanumériques/quatre chiffres."
+
+# --- users/admin.py ---
+
+msgid "Permissions"
+msgstr "Permissions"

@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from datetime import date, datetime
+from django.utils.translation import gettext_lazy as _
 from user_agents import parse
 
 from .common_objs import *
@@ -34,7 +35,7 @@ class AccessLog(models.Model):
     login = models.ForeignKey(CustomUser, null=True, on_delete=models.SET_NULL)
     ua = models.CharField(
         max_length=2000,
-        help_text="User agent. We can use this to determine operating system and browser in use.",
+        help_text=_("User agent. We can use this to determine operating system and browser in use."),
     )
     date = models.DateTimeField(
         auto_now_add=True
@@ -79,7 +80,7 @@ class AccessLog(models.Model):
 class School(models.Model):
     active = models.BooleanField(
         default=False,
-        help_text="DANGER..!!!! If marked, this will be the default School Information System Wide...",
+        help_text=_("DANGER..!!!! If marked, this will be the default School Information System Wide..."),
     )
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=250)
@@ -139,9 +140,11 @@ class AcademicYear(models.Model):
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
     active_year = models.BooleanField(
-        help_text="DANGER!! This is the current school year. "
-        "There can only be one and setting this will remove it from other years. "
-        "If you want to change the active year, click Admin, Change School Year."
+        help_text=_(
+            "DANGER!! This is the current school year. "
+            "There can only be one and setting this will remove it from other years. "
+            "If you want to change the active year, click Admin, Change School Year."
+        )
     )
 
     class Meta:
@@ -172,7 +175,7 @@ class AcademicYear(models.Model):
         Add custom validation to ensure the end_date is after start_date if both are provided.
         """
         if self.end_date and self.start_date > self.end_date:
-            raise ValidationError("End date must be after start date.")
+            raise ValidationError(_("End date must be after start date."))
 
 
 class Term(models.Model):
@@ -192,27 +195,27 @@ class Term(models.Model):
 
 class SchoolEvent(models.Model):
     EVENT_TYPE_CHOICES = [
-        ("exam", "Examination Period"),
-        ("graduation", "Graduation Day"),
-        ("holiday", "Holiday"),
-        ("leave", "Student Leave"),
-        ("other", "Other Event"),
+        ("exam", _("Examination Period")),
+        ("graduation", _("Graduation Day")),
+        ("holiday", _("Holiday")),
+        ("leave", _("Student Leave")),
+        ("other", _("Other Event")),
     ]
 
     term = models.ForeignKey(
         "Term",
         on_delete=models.CASCADE,
         related_name="events",
-        help_text="The term this event belongs to",
+        help_text=_("The term this event belongs to"),
     )
     name = models.CharField(
-        max_length=255, help_text="Name of the event (e.g., Midterm Exams, Eid Holiday)"
+        max_length=255, help_text=_("Name of the event (e.g., Midterm Exams, Eid Holiday)")
     )
     event_type = models.CharField(max_length=20, choices=EVENT_TYPE_CHOICES)
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
     description = models.TextField(
-        blank=True, help_text="Optional details about the event"
+        blank=True, help_text=_("Optional details about the event")
     )
 
     class Meta:
@@ -225,15 +228,15 @@ class SchoolEvent(models.Model):
         if not self.start_date or not self.term_id:
             return
         if self.end_date and self.start_date > self.end_date:
-            raise ValidationError("End date must be after start date.")
+            raise ValidationError(_("End date must be after start date."))
         if self.term.start_date and self.term.end_date:
             if not (self.term.start_date <= self.start_date <= self.term.end_date):
                 raise ValidationError(
-                    "Start date must be within the term's duration."
+                    _("Start date must be within the term's duration.")
                 )
             if self.end_date and not (
                 self.term.start_date <= self.end_date <= self.term.end_date
             ):
                 raise ValidationError(
-                    "End date must be within the term's duration."
+                    _("End date must be within the term's duration.")
                 )
