@@ -1,5 +1,5 @@
-from django.contrib import admin
-from django.http import HttpResponseRedirect
+from django.contrib import admin, messages
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -155,3 +155,77 @@ class ResultAdmin(admin.ModelAdmin):
     search_fields = ("student__first_name", "student__last_name")
     raw_id_fields = ("student", "academic_year", "term")
     readonly_fields = ("gpa", "cat_gpa")
+    actions = ["download_bulletins_zip"]
+
+    @admin.action(description="Download bulletins ZIP for selected (one classroom + term only)")
+    def download_bulletins_zip(self, request, queryset):
+        """Build a ZIP of PDF bulletins for the selected Results.
+
+        Requires the selection to be a single (academic_year, term, classroom)
+        triple. The classroom is resolved via the StudentClassEnrollment of
+        each student for that academic_year."""
+        from academic.models import ClassRoom, StudentClassEnrollment
+        from administration.models import Term
+
+        if not queryset.exists():
+            self.message_user(request, "No Results selected.", level=messages.ERROR)
+            return
+
+        terms = set(queryset.values_list("term_id", flat=True))
+        years = set(queryset.values_list("academic_year_id", flat=True))
+        if len(terms) != 1 or None in terms:
+            self.message_user(
+                request,
+                "Select Results from a single (non-empty) term only.",
+                level=messages.ERROR,
+            )
+            return
+        if len(years) != 1:
+            self.message_user(
+                request,
+                "Select Results from a single academic year only.",
+                level=messages.ERROR,
+            )
+            return
+
+        term_id = terms.pop()
+        academic_year_id = years.pop()
+        student_ids = list(queryset.values_list("student_id", flat=True))
+
+        classrooms = set(
+            StudentClassEnrollment.objects.filter(
+                student_id__in=student_ids, academic_year_id=academic_year_id
+            ).values_list("classroom_id", flat=True)
+        )
+        if len(classrooms) != 1:
+            self.message_user(
+                request,
+                "Selected Results span multiple classrooms. "
+                "Filter the changelist to one classroom and re-run.",
+                level=messages.ERROR,
+            )
+            return
+
+        classroom = ClassRoom.objects.get(pk=classrooms.pop())
+        term = Term.objects.get(pk=term_id)
+        zip_bytes, success, failed = services.render_class_bulletins_zip(
+            classroom, term
+        )
+        if success == 0:
+            self.message_user(
+                request,
+                f"No bulletins generated. Failed: {failed or 'none'}",
+                level=messages.ERROR,
+            )
+            return
+
+        response = HttpResponse(zip_bytes, content_type="application/zip")
+        filename = f"bulletins_classroom{classroom.id}_{term.name}.zip"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        if failed:
+            self.message_user(
+                request,
+                f"{success} bulletins generated. Failed: {', '.join(failed)}",
+                level=messages.WARNING,
+            )
+        return response

@@ -21,13 +21,19 @@ from examination.models import (
     MarksManagement,
     Result,
 )
+import io
+import zipfile
+
 from examination.services import (
     assign_mention,
+    build_bulletin_payload,
     compute_class_ranking,
     compute_subject_average,
     compute_term_average,
     generate_term_results,
     get_grade_scale,
+    render_bulletin_pdf,
+    render_class_bulletins_zip,
 )
 
 
@@ -327,3 +333,71 @@ class GenerateResultsTests(TestCase):
         self.assertEqual(r.average, Decimal("18.00"))
         self.assertEqual(r.rank, 1)
         self.assertEqual(r.mention, "Très Bien")
+
+
+class BulletinPdfTests(TestCase):
+    """Validate the bulletin payload + PDF + ZIP helpers end to end."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.scale = GradeScale.objects.get(name="/20")
+        gl = GradeLevel.objects.create(id=400, name="Collège", grade_scale=cls.scale)
+        cl = ClassLevel.objects.create(id=401, name="6eme", grade_level=gl)
+        cls.classroom = _create_classroom(cl, "PDF")
+        cls.year = AcademicYear.objects.create(
+            name="2025-26", start_date=date(2025, 9, 1), active_year=True
+        )
+        cls.term = Term.objects.create(
+            name="T1",
+            academic_year=cls.year,
+            start_date=date(2025, 9, 1),
+            end_date=date(2025, 12, 20),
+        )
+        cls.math = Subject.objects.create(name="Math")
+        AllocatedSubject.objects.create(
+            teacher_name=cls.classroom.class_teacher,
+            subject=cls.math,
+            academic_year=cls.year,
+            term=cls.term,
+            class_room=cls.classroom,
+            coefficient=Decimal("1"),
+            weekly_periods=4,
+        )
+        cls.exam = _make_exam("DS1 T1", cls.classroom, cls.term, out_of=20)
+        cls.alice = _enroll(cls.classroom, cls.year, "Alice")
+        cls.bob = _enroll(cls.classroom, cls.year, "Bob")
+        for enr, pts in [(cls.alice, 18), (cls.bob, 12)]:
+            MarksManagement.objects.create(
+                exam_name=cls.exam,
+                points_scored=pts,
+                subject=cls.math,
+                student=enr,
+                created_by=cls.classroom.class_teacher,
+            )
+
+    def test_payload_contains_average_and_rank(self):
+        payload = build_bulletin_payload(self.alice, self.term)
+        self.assertEqual(payload["average"], Decimal("18.00"))
+        self.assertEqual(payload["rank"], 1)
+        self.assertEqual(payload["scale"], "/20")
+        self.assertEqual(payload["mention"], "Très Bien")
+        self.assertEqual(len(payload["subjects"]), 1)
+
+    def test_pdf_renders_to_valid_bytes(self):
+        pdf = render_bulletin_pdf(self.alice, self.term)
+        self.assertIsNotNone(pdf)
+        self.assertTrue(pdf.startswith(b"%PDF"))
+
+    def test_class_zip_contains_one_pdf_per_student(self):
+        zip_bytes, success, failed = render_class_bulletins_zip(
+            self.classroom, self.term
+        )
+        self.assertEqual(success, 2)
+        self.assertEqual(failed, [])
+        with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+            names = zf.namelist()
+            self.assertEqual(len(names), 2)
+            for name in names:
+                self.assertTrue(name.endswith(".pdf"))
+                with zf.open(name) as fp:
+                    self.assertTrue(fp.read(4).startswith(b"%PDF"))

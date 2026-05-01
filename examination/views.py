@@ -1,15 +1,10 @@
-import io
-from decimal import Decimal
-
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.template.loader import render_to_string
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from xhtml2pdf import pisa
 
 from academic.models import (
     AllocatedSubject,
@@ -229,59 +224,6 @@ class ClassMarksView(APIView):
 # --- Bulletin (read-only computed) ---
 
 
-def _build_bulletin_payload(enrollment: StudentClassEnrollment, term: Term) -> dict:
-    scale = services.get_grade_scale(enrollment)
-    allocations = AllocatedSubject.objects.filter(
-        class_room=enrollment.classroom,
-        academic_year=enrollment.academic_year,
-        term=term,
-    ).select_related("subject")
-
-    subject_lines = []
-    for alloc in allocations:
-        avg = services.compute_subject_average(enrollment, alloc.subject, term)
-        coef = Decimal(str(alloc.coefficient or 1))
-        weighted = (avg * coef) if avg is not None else None
-        subject_lines.append(
-            {
-                "subject": alloc.subject.name,
-                "coefficient": coef,
-                "average": avg,
-                "weighted": weighted,
-            }
-        )
-
-    average = services.compute_term_average(enrollment, term)
-    mention = services.assign_mention(average, scale) if average is not None else ""
-
-    ranking = services.compute_class_ranking(enrollment.classroom, term)
-    rank = next(
-        (r["rank"] for r in ranking if r["enrollment"].id == enrollment.id), None
-    )
-    class_size = StudentClassEnrollment.objects.filter(
-        classroom=enrollment.classroom
-    ).count()
-
-    return {
-        "student_id": enrollment.student_id,
-        "student_name": (
-            f"{enrollment.student.first_name} {enrollment.student.last_name}".strip()
-        ),
-        "classroom": (
-            f"{enrollment.classroom.name.name if enrollment.classroom.name else ''}"
-            f" {enrollment.classroom.stream.name if enrollment.classroom.stream else ''}"
-        ).strip(),
-        "academic_year": enrollment.academic_year.name,
-        "term": term.name,
-        "scale": scale.name if scale else "",
-        "subjects": subject_lines,
-        "average": average,
-        "rank": rank,
-        "class_size": class_size,
-        "mention": mention,
-    }
-
-
 class BulletinView(APIView):
     """GET bulletin (JSON) for one (student-enrollment, term)."""
 
@@ -295,7 +237,7 @@ class BulletinView(APIView):
             pk=enrollment_id,
         )
         term = get_object_or_404(Term, pk=term_id)
-        payload = _build_bulletin_payload(enrollment, term)
+        payload = services.build_bulletin_payload(enrollment, term)
         return Response(BulletinSerializer(payload).data)
 
 
@@ -312,21 +254,46 @@ class BulletinPDFView(APIView):
             pk=enrollment_id,
         )
         term = get_object_or_404(Term, pk=term_id)
-        payload = _build_bulletin_payload(enrollment, term)
-        html = render_to_string("examination/bulletin.html", {"b": payload})
-        buf = io.BytesIO()
-        result = pisa.CreatePDF(html, dest=buf)
-        if result.err:
+        pdf_bytes = services.render_bulletin_pdf(enrollment, term)
+        if pdf_bytes is None:
             return Response(
                 {"detail": "PDF generation failed"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        response = HttpResponse(buf.getvalue(), content_type="application/pdf")
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
         filename = (
             f"bulletin_{enrollment.student.last_name}_"
             f"{enrollment.student.first_name}_{term.name}.pdf"
         )
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+
+class ClassBulletinsZIPView(APIView):
+    """GET a ZIP archive of PDF bulletins for every enrolled student in
+    a (classroom, term)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, classroom_id, term_id):
+        classroom = get_object_or_404(ClassRoom, pk=classroom_id)
+        term = get_object_or_404(Term, pk=term_id)
+        zip_bytes, success, failed = services.render_class_bulletins_zip(
+            classroom, term
+        )
+        if success == 0:
+            return Response(
+                {
+                    "detail": "No bulletins generated.",
+                    "failed": failed,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        response = HttpResponse(zip_bytes, content_type="application/zip")
+        filename = f"bulletins_classroom{classroom.id}_{term.name}.zip"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        if failed:
+            response["X-Failed-Students"] = ", ".join(failed)
         return response
 
 

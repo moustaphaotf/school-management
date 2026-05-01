@@ -2,13 +2,20 @@
 Pure-Python computations for grading: scale resolution, subject and term
 averages, class ranking, mention assignment, and Result persistence.
 
+Also exposes payload-building and PDF rendering helpers used by views and
+admin actions to produce single bulletins or a class ZIP.
+
 All averages are returned in the student's native scale (no /4 GPA conversion).
 """
+import io
+import zipfile
 from collections import defaultdict
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Optional
 
 from django.db import transaction
+from django.template.loader import render_to_string
+from xhtml2pdf import pisa
 
 from academic.models import (
     AllocatedSubject,
@@ -200,3 +207,120 @@ def _scale_max(scale: GradeScale) -> Optional[Decimal]:
     if rule is None:
         return None
     return Decimal(str(rule.max_grade))
+
+
+def build_bulletin_payload(
+    enrollment: StudentClassEnrollment, term: Term
+) -> dict:
+    """Compose the bulletin payload (subjects, averages, rank, mention) for
+    one (enrollment, term). Used by both JSON and PDF views, and by the ZIP
+    bundler. Pure read; does not persist."""
+    scale = get_grade_scale(enrollment)
+    allocations = AllocatedSubject.objects.filter(
+        class_room=enrollment.classroom,
+        academic_year=enrollment.academic_year,
+        term=term,
+    ).select_related("subject")
+
+    subject_lines = []
+    for alloc in allocations:
+        sub_avg = compute_subject_average(enrollment, alloc.subject, term)
+        coef = Decimal(str(alloc.coefficient or 1))
+        weighted = (sub_avg * coef) if sub_avg is not None else None
+        subject_lines.append(
+            {
+                "subject": alloc.subject.name,
+                "coefficient": coef,
+                "average": sub_avg,
+                "weighted": weighted,
+            }
+        )
+
+    average = compute_term_average(enrollment, term)
+    mention = assign_mention(average, scale) if average is not None else ""
+
+    ranking = compute_class_ranking(enrollment.classroom, term)
+    rank = next(
+        (r["rank"] for r in ranking if r["enrollment"].id == enrollment.id), None
+    )
+    class_size = StudentClassEnrollment.objects.filter(
+        classroom=enrollment.classroom
+    ).count()
+
+    return {
+        "student_id": enrollment.student_id,
+        "student_name": (
+            f"{enrollment.student.first_name} {enrollment.student.last_name}".strip()
+        ),
+        "classroom": (
+            f"{enrollment.classroom.name.name if enrollment.classroom.name else ''}"
+            f" {enrollment.classroom.stream.name if enrollment.classroom.stream else ''}"
+        ).strip(),
+        "academic_year": enrollment.academic_year.name,
+        "term": term.name,
+        "scale": scale.name if scale else "",
+        "subjects": subject_lines,
+        "average": average,
+        "rank": rank,
+        "class_size": class_size,
+        "mention": mention,
+    }
+
+
+def render_bulletin_pdf(
+    enrollment: StudentClassEnrollment, term: Term
+) -> Optional[bytes]:
+    """Render the bulletin HTML template to PDF bytes. Returns None on failure."""
+    payload = build_bulletin_payload(enrollment, term)
+    html = render_to_string("examination/bulletin.html", {"b": payload})
+    buf = io.BytesIO()
+    result = pisa.CreatePDF(html, dest=buf)
+    if result.err:
+        return None
+    return buf.getvalue()
+
+
+def _safe_filename_part(s: str) -> str:
+    """Sanitize a string so it's safe to use inside a ZIP entry filename."""
+    keep = []
+    for ch in s:
+        if ch.isalnum() or ch in ("-", "_"):
+            keep.append(ch)
+        elif ch == " ":
+            keep.append("_")
+    return "".join(keep) or "x"
+
+
+def render_class_bulletins_zip(
+    classroom: ClassRoom, term: Term
+) -> tuple[bytes, int, list[str]]:
+    """Render a PDF bulletin for each enrolled student in the classroom for
+    the term, and bundle them into an in-memory ZIP. Returns:
+        (zip_bytes, success_count, failed_student_names)"""
+    enrollments = (
+        StudentClassEnrollment.objects.filter(classroom=classroom)
+        .select_related("student", "academic_year", "classroom")
+        .order_by("student__last_name", "student__first_name")
+    )
+
+    buf = io.BytesIO()
+    failed: list[str] = []
+    success = 0
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for enr in enrollments:
+            pdf = render_bulletin_pdf(enr, term)
+            student_name = (
+                f"{enr.student.last_name} {enr.student.first_name}".strip()
+            )
+            if pdf is None:
+                failed.append(student_name)
+                continue
+            filename = (
+                f"bulletin_{_safe_filename_part(enr.student.last_name or '')}_"
+                f"{_safe_filename_part(enr.student.first_name or '')}_"
+                f"{_safe_filename_part(term.name)}.pdf"
+            )
+            zf.writestr(filename, pdf)
+            success += 1
+
+    return buf.getvalue(), success, failed

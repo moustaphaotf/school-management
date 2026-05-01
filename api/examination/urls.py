@@ -2,6 +2,7 @@ from django.urls import path
 from examination.views import (
     BulletinPDFView,
     BulletinView,
+    ClassBulletinsZIPView,
     ClassMarksView,
     ClassRankingView,
     ExamDetailView,
@@ -66,6 +67,12 @@ urlpatterns = [
         "classrooms/<int:classroom_id>/terms/<int:term_id>/ranking/",
         ClassRankingView.as_view(),
         name="class-ranking",
+    ),
+    # Class bulletins ZIP
+    path(
+        "classrooms/<int:classroom_id>/terms/<int:term_id>/bulletins-pdf/",
+        ClassBulletinsZIPView.as_view(),
+        name="class-bulletins-zip",
     ),
     # Generate persisted Results for a class+term
     path(
