@@ -24,6 +24,12 @@ from examination.models import (
 import io
 import zipfile
 
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APIClient
+
+from users.models import CustomUser
+
 from examination.services import (
     assign_mention,
     build_bulletin_payload,
@@ -401,3 +407,136 @@ class BulletinPdfTests(TestCase):
                 self.assertTrue(name.endswith(".pdf"))
                 with zf.open(name) as fp:
                     self.assertTrue(fp.read(4).startswith(b"%PDF"))
+
+
+class MarksPermissionTests(TestCase):
+    """Verify that only the allocated teacher (or admin) can write marks."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.scale = GradeScale.objects.get(name="/20")
+        gl = GradeLevel.objects.create(id=500, name="Collège", grade_scale=cls.scale)
+        cl = ClassLevel.objects.create(id=501, name="6eme", grade_level=gl)
+        cls.classroom = _create_classroom(cl, "PERM")
+
+        # Teacher A teaches Math; Teacher B teaches Français (in another classroom helper)
+        cls.teacher_math = Teacher.objects.create(
+            username="math-teacher",
+            first_name="Math",
+            last_name="Teacher",
+            email="math@test.gn",
+            empId="EMATH",
+            short_name="MTH",
+        )
+        cls.teacher_fr = Teacher.objects.create(
+            username="fr-teacher",
+            first_name="Fr",
+            last_name="Teacher",
+            email="fr@test.gn",
+            empId="EFR",
+            short_name="FR",
+        )
+
+        cls.year = AcademicYear.objects.create(
+            name="2025-26", start_date=date(2025, 9, 1), active_year=True
+        )
+        cls.term = Term.objects.create(
+            name="T1",
+            academic_year=cls.year,
+            start_date=date(2025, 9, 1),
+            end_date=date(2025, 12, 20),
+        )
+        cls.math = Subject.objects.create(name="Math")
+        cls.francais = Subject.objects.create(name="Francais")
+
+        # Only Math is allocated to teacher_math in this classroom
+        AllocatedSubject.objects.create(
+            teacher_name=cls.teacher_math,
+            subject=cls.math,
+            academic_year=cls.year,
+            term=cls.term,
+            class_room=cls.classroom,
+            coefficient=Decimal("1"),
+            weekly_periods=4,
+        )
+
+        cls.exam = _make_exam("DS1 T1", cls.classroom, cls.term, out_of=20)
+        cls.enr = _enroll(cls.classroom, cls.year, "Pupil")
+
+        cls.admin = CustomUser.objects.create_superuser(
+            email="admin@test.gn", password="x"
+        )
+
+    def test_anonymous_cannot_post_mark(self):
+        client = APIClient()
+        response = client.post(
+            "/api/examination/marks/",
+            {
+                "exam_name": self.exam.id,
+                "points_scored": 15,
+                "subject": self.math.id,
+                "student": self.enr.id,
+            },
+            format="json",
+        )
+        self.assertIn(response.status_code, (401, 403))
+
+    def test_math_teacher_can_post_math_mark(self):
+        client = APIClient()
+        client.force_authenticate(user=self.teacher_math.user)
+        response = client.post(
+            "/api/examination/marks/",
+            {
+                "exam_name": self.exam.id,
+                "points_scored": 15,
+                "subject": self.math.id,
+                "student": self.enr.id,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_fr_teacher_cannot_post_math_mark(self):
+        client = APIClient()
+        client.force_authenticate(user=self.teacher_fr.user)
+        response = client.post(
+            "/api/examination/marks/",
+            {
+                "exam_name": self.exam.id,
+                "points_scored": 15,
+                "subject": self.math.id,
+                "student": self.enr.id,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_admin_can_post_anything(self):
+        client = APIClient()
+        client.force_authenticate(user=self.admin)
+        response = client.post(
+            "/api/examination/marks/",
+            {
+                "exam_name": self.exam.id,
+                "points_scored": 12,
+                "subject": self.francais.id,  # admin not constrained
+                "student": self.enr.id,
+                "created_by": self.teacher_fr.id,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_math_teacher_can_read_marks(self):
+        """Read access is not restricted; SAFE_METHODS pass."""
+        MarksManagement.objects.create(
+            exam_name=self.exam,
+            points_scored=15,
+            subject=self.math,
+            student=self.enr,
+            created_by=self.teacher_math,
+        )
+        client = APIClient()
+        client.force_authenticate(user=self.teacher_fr.user)  # Fr teacher reads Math
+        response = client.get("/api/examination/marks/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -6,6 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .permissions import IsTeacherOfSubjectOrAdmin, teacher_owns_subject
+
 from academic.models import (
     AllocatedSubject,
     ClassRoom,
@@ -66,7 +68,7 @@ class GradeScaleRuleDetailView(generics.RetrieveUpdateDestroyAPIView):
 class ExamListView(generics.ListCreateAPIView):
     queryset = ExaminationListHandler.objects.all().select_related("term")
     serializer_class = ExamSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsTeacherOfSubjectOrAdmin]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -82,7 +84,7 @@ class ExamListView(generics.ListCreateAPIView):
 class ExamDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ExaminationListHandler.objects.all()
     serializer_class = ExamSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsTeacherOfSubjectOrAdmin]
 
 
 # --- Marks (individual) ---
@@ -93,7 +95,28 @@ class MarksListView(generics.ListCreateAPIView):
         "exam_name", "subject", "student__student"
     )
     serializer_class = MarkSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsTeacherOfSubjectOrAdmin]
+
+    def perform_create(self, serializer):
+        """On create, enforce that the requesting teacher is allocated to
+        the (subject, classroom). Admins bypass."""
+        user = self.request.user
+        if user.is_superuser or user.is_staff:
+            serializer.save()
+            return
+        teacher = getattr(user, "teacher", None)
+        subject = serializer.validated_data["subject"]
+        enrollment = serializer.validated_data["student"]
+        if not teacher_owns_subject(teacher, subject.id, enrollment.classroom_id):
+            from rest_framework.exceptions import PermissionDenied
+
+            raise PermissionDenied(
+                "You are not allocated to this subject for this classroom."
+            )
+        if not serializer.validated_data.get("created_by"):
+            serializer.save(created_by=teacher)
+        else:
+            serializer.save()
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -109,7 +132,7 @@ class MarksListView(generics.ListCreateAPIView):
 class MarksDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = MarksManagement.objects.all()
     serializer_class = MarkSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsTeacherOfSubjectOrAdmin]
 
 
 # --- Bulk marks entry (one exam x one subject, many students) ---
@@ -118,9 +141,11 @@ class MarksDetailView(generics.RetrieveUpdateDestroyAPIView):
 class MarksBulkEntryView(APIView):
     """POST: enter many marks for one (exam, subject) atomically.
 
-    Existing marks for the same (exam, subject, student) are updated."""
+    Existing marks for the same (exam, subject, student) are updated.
+    Teachers can only post for subjects they are allocated to (per
+    classroom). Admins bypass."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsTeacherOfSubjectOrAdmin]
 
     def post(self, request):
         serializer = BulkMarksSerializer(data=request.data)
@@ -130,6 +155,20 @@ class MarksBulkEntryView(APIView):
         items = serializer.validated_data["marks"]
 
         teacher = getattr(request.user, "teacher", None)
+        is_admin = request.user.is_superuser or request.user.is_staff
+
+        if not is_admin:
+            # Verify the requesting teacher is allocated to this subject for
+            # every classroom touched by the marks.
+            classrooms = {item["student"].classroom_id for item in items}
+            for classroom_id in classrooms:
+                if not teacher_owns_subject(teacher, subject.id, classroom_id):
+                    from rest_framework.exceptions import PermissionDenied
+
+                    raise PermissionDenied(
+                        "You are not allocated to this subject for one or "
+                        "more of the classrooms in the payload."
+                    )
 
         created, updated = 0, 0
         with transaction.atomic():
