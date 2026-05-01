@@ -222,11 +222,18 @@ class SchoolEvent(models.Model):
         return f"{self.name} ({self.term.name} - {self.term.academic_year.name})"
 
     def clean(self):
+        if not self.start_date or not self.term_id:
+            return
         if self.end_date and self.start_date > self.end_date:
             raise ValidationError("End date must be after start date.")
-        if not (self.term.start_date <= self.start_date <= self.term.end_date):
-            raise ValidationError("Start date must be within the term's duration.")
-        if self.end_date and not (
-            self.term.start_date <= self.end_date <= self.term.end_date
-        ):
-            raise ValidationError("End date must be within the term's duration.")
+        if self.term.start_date and self.term.end_date:
+            if not (self.term.start_date <= self.start_date <= self.term.end_date):
+                raise ValidationError(
+                    "Start date must be within the term's duration."
+                )
+            if self.end_date and not (
+                self.term.start_date <= self.end_date <= self.term.end_date
+            ):
+                raise ValidationError(
+                    "End date must be within the term's duration."
+                )

@@ -239,7 +239,11 @@ class ClassRoom(models.Model):
         return f"{percentage:.2f}%"
 
     def clean(self):
-        if self.occupied_sits > self.capacity:
+        if (
+            self.occupied_sits is not None
+            and self.capacity is not None
+            and self.occupied_sits > self.capacity
+        ):
             raise ValidationError("Occupied sits cannot exceed the capacity.")
 
     def save(self, *args, **kwargs):
@@ -479,9 +483,6 @@ class Student(models.Model):
         )
 
     def clean(self):
-        # Prevent students from being teachers
-        if Teacher.objects.filter(id=self.id).exists():
-            raise ValidationError("A person cannot be both a student and a teacher.")
         super().clean()
 
     def save(self, *args, **kwargs):
@@ -591,6 +592,10 @@ class StudentClassEnrollment(models.Model):
         - Check if the classroom has available seats.
         - Prevent duplicate assignments for the same student and academic year.
         """
+        # Skip validation if required FKs are not set yet (form errors elsewhere)
+        if not self.classroom_id or not self.student_id or not self.academic_year_id:
+            return
+
         # Validate that the classroom matches the student's class level
         if self.classroom.name != self.student.class_level:
             raise ValidationError(
@@ -598,7 +603,12 @@ class StudentClassEnrollment(models.Model):
             )
 
         # Validate that the classroom has available seats
-        if not self.pk and self.classroom.occupied_sits >= self.classroom.capacity:
+        if (
+            not self.pk
+            and self.classroom.occupied_sits is not None
+            and self.classroom.capacity is not None
+            and self.classroom.occupied_sits >= self.classroom.capacity
+        ):
             raise ValidationError(
                 f"The classroom '{self.classroom}' has reached its maximum capacity."
             )

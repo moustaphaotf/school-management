@@ -135,8 +135,9 @@ class ExaminationListHandler(models.Model):
 
     def clean(self):
         """Ensure the start date is not later than the end date."""
-        if self.start_date > self.ends_date:
-            raise ValidationError("Start date cannot be later than end date.")
+        if self.start_date and self.ends_date:
+            if self.start_date > self.ends_date:
+                raise ValidationError("Start date cannot be later than end date.")
         super(ExaminationListHandler, self).clean()
 
 
@@ -161,8 +162,13 @@ class MarksManagement(models.Model):
 
     def clean(self):
         """Validate points scored based on the exam's out_of value."""
-        if self.points_scored < 0 or self.points_scored > self.exam_name.out_of:
-            raise ValidationError(
-                f"Points scored must be between 0 and {self.exam_name.out_of}."
-            )
+        if (
+            self.points_scored is not None
+            and self.exam_name is not None
+            and self.exam_name.out_of is not None
+        ):
+            if self.points_scored < 0 or self.points_scored > self.exam_name.out_of:
+                raise ValidationError(
+                    f"Points scored must be between 0 and {self.exam_name.out_of}."
+                )
         super(MarksManagement, self).clean()

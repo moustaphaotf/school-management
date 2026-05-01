@@ -108,7 +108,7 @@ class Receipt(models.Model):
         return f"Receipt {self.receipt_number} | {self.date} | {self.paid_for} | {self.payer}"
 
     def clean(self):
-        if self.amount <= 0:
+        if self.amount is not None and self.amount <= 0:
             raise ValidationError("Amount must be a positive value.")
 
     def save(self, *args, **kwargs):
@@ -152,7 +152,7 @@ class Payment(models.Model):
         return f"Payment {self.payment_number} | {self.date} | {self.paid_for} | {self.paid_to}"
 
     def clean(self):
-        if self.amount <= 0:
+        if self.amount is not None and self.amount <= 0:
             raise ValidationError("Amount must be a positive value.")
 
     def save(self, *args, **kwargs):
