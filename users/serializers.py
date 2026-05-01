@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.contrib.auth.models import Group
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from academic.models import Teacher, Subject, Parent
@@ -127,7 +128,7 @@ class AccountantSerializer(serializers.ModelSerializer):
 
         if Accountant.objects.filter(email=value).exclude(id=accountant_id).exists():
             raise serializers.ValidationError(
-                "A accountant with this email already exists."
+                _("An accountant with this email already exists.")
             )
 
         return value
@@ -143,7 +144,7 @@ class AccountantSerializer(serializers.ModelSerializer):
             .exists()
         ):
             raise serializers.ValidationError(
-                "A accountant with this phone number already exists."
+                _("An accountant with this phone number already exists.")
             )
 
         return value
@@ -200,7 +201,7 @@ class TeacherSerializer(serializers.ModelSerializer):
 
         if Teacher.objects.filter(email=value).exclude(id=teacher_id).exists():
             raise serializers.ValidationError(
-                "A teacher with this email already exists."
+                _("A teacher with this email already exists.")
             )
 
         return value
@@ -212,7 +213,7 @@ class TeacherSerializer(serializers.ModelSerializer):
 
         if Teacher.objects.filter(phone_number=value).exclude(id=teacher_id).exists():
             raise serializers.ValidationError(
-                "A teacher with this phone number already exists."
+                _("A teacher with this phone number already exists.")
             )
 
         return value
@@ -224,7 +225,7 @@ class TeacherSerializer(serializers.ModelSerializer):
         """
         if not isinstance(value, list):
             raise serializers.ValidationError(
-                "Subject specialization should be a list of subject names."
+                _("Subject specialization should be a list of subject names.")
             )
 
         # Get existing subjects matching the provided names
@@ -238,7 +239,8 @@ class TeacherSerializer(serializers.ModelSerializer):
 
         if missing_subjects:
             raise serializers.ValidationError(
-                f"The following subjects do not exist: {', '.join(missing_subjects)}"
+                _("The following subjects do not exist: %(subjects)s")
+                % {"subjects": ", ".join(missing_subjects)}
             )
 
         return existing_subjects  # Return the queryset instead of a list of names
@@ -284,7 +286,7 @@ class ParentSerializer(serializers.ModelSerializer):
         """Ensure email uniqueness among parents."""
         if Parent.objects.filter(email=value).exists():
             raise serializers.ValidationError(
-                "A parent with this email already exists."
+                _("A parent with this email already exists.")
             )
         return value
 
@@ -292,7 +294,7 @@ class ParentSerializer(serializers.ModelSerializer):
         """Ensure phone number uniqueness among parents."""
         if Parent.objects.filter(phone_number=value).exists():
             raise serializers.ValidationError(
-                "A parent with this phone number already exists."
+                _("A parent with this phone number already exists.")
             )
         return value
 

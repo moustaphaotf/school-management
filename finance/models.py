@@ -1,6 +1,7 @@
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from decimal import Decimal
 from administration.models import Term
 from users.models import Accountant, CustomUser as User
@@ -24,21 +25,26 @@ class PaymentThrough(models.TextChoices):
 
 class DebtRecord(models.Model):
     student = models.ForeignKey(
-        Student, related_name="debt_records", on_delete=models.CASCADE
+        Student, related_name="debt_records", on_delete=models.CASCADE,
+        verbose_name=_("student"),
     )
-    term = models.ForeignKey(Term, on_delete=models.CASCADE)
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, verbose_name=_("term"))
     amount_added = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0.00")
+        max_digits=10, decimal_places=2, default=Decimal("0.00"),
+        verbose_name=_("amount added"),
     )
     amount_paid = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0.00")
+        max_digits=10, decimal_places=2, default=Decimal("0.00"),
+        verbose_name=_("amount paid"),
     )
-    note = models.TextField(blank=True, null=True)
-    date_updated = models.DateTimeField(auto_now_add=True)
-    is_reversed = models.BooleanField(default=False)
-    reversed_on = models.DateTimeField(null=True, blank=True)
+    note = models.TextField(blank=True, null=True, verbose_name=_("note"))
+    date_updated = models.DateTimeField(auto_now_add=True, verbose_name=_("date updated"))
+    is_reversed = models.BooleanField(default=False, verbose_name=_("is reversed"))
+    reversed_on = models.DateTimeField(null=True, blank=True, verbose_name=_("reversed on"))
 
     class Meta:
+        verbose_name = _("Debt Record")
+        verbose_name_plural = _("Debt Records")
         unique_together = ("student", "term")
         ordering = ["-date_updated"]
 
@@ -55,9 +61,9 @@ class DebtRecord(models.Model):
         """
         amount = Decimal(amount)
         if amount <= 0:
-            raise ValueError("Payment must be positive.")
+            raise ValueError(_("Payment must be positive."))
         if self.balance < amount:
-            raise ValueError("Cannot pay more than the remaining balance.")
+            raise ValueError(_("Cannot pay more than the remaining balance."))
         self.amount_paid += amount
         self.save()
 
@@ -68,48 +74,64 @@ class DebtRecord(models.Model):
 
 
 class ReceiptAllocation(models.Model):
-    name = models.CharField(max_length=255, null=True)
-    abbr = models.CharField(max_length=50, blank=True, null=True)
+    name = models.CharField(max_length=255, null=True, verbose_name=_("name"))
+    abbr = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("abbreviation"))
+
+    class Meta:
+        verbose_name = _("Receipt Allocation")
+        verbose_name_plural = _("Receipt Allocations")
 
     def __str__(self):
         return self.name
 
 
 class PaymentAllocation(models.Model):
-    name = models.CharField(max_length=255, null=True)
-    abbr = models.CharField(max_length=50, blank=True, null=True)
+    name = models.CharField(max_length=255, null=True, verbose_name=_("name"))
+    abbr = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("abbreviation"))
+
+    class Meta:
+        verbose_name = _("Payment Allocation")
+        verbose_name_plural = _("Payment Allocations")
 
     def __str__(self):
         return self.name
 
 
 class Receipt(models.Model):
-    receipt_number = models.IntegerField(unique=True, blank=True, null=True)
-    date = models.DateField(auto_now_add=True)
-    payer = models.CharField(max_length=255, default="Unknown")
+    receipt_number = models.IntegerField(unique=True, blank=True, null=True, verbose_name=_("receipt number"))
+    date = models.DateField(auto_now_add=True, verbose_name=_("date"))
+    payer = models.CharField(max_length=255, default="Unknown", verbose_name=_("payer"))
     paid_for = models.ForeignKey(
-        "ReceiptAllocation", on_delete=models.SET_NULL, null=True
+        "ReceiptAllocation", on_delete=models.SET_NULL, null=True,
+        verbose_name=_("paid for"),
     )
     student = models.ForeignKey(
-        Student, on_delete=models.SET_NULL, null=True, blank=True
+        Student, on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name=_("student"),
     )
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_("amount"))
     paid_through = models.CharField(
-        max_length=20, choices=PaymentThrough.choices, default=PaymentThrough.UNKNOWN
+        max_length=20, choices=PaymentThrough.choices, default=PaymentThrough.UNKNOWN,
+        verbose_name=_("paid through"),
     )
-    term = models.ForeignKey(Term, on_delete=models.SET_NULL, null=True, blank=True)
-    payment_date = models.DateField(default=timezone.now)
+    term = models.ForeignKey(Term, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("term"))
+    payment_date = models.DateField(default=timezone.now, verbose_name=_("payment date"))
     status = models.CharField(
-        max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING
+        max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING,
+        verbose_name=_("status"),
     )
-    received_by = models.ForeignKey(Accountant, on_delete=models.SET_NULL, null=True)
+    received_by = models.ForeignKey(Accountant, on_delete=models.SET_NULL, null=True, verbose_name=_("received by"))
+
+    class Meta:
+        verbose_name = _("Receipt")
+        verbose_name_plural = _("Receipts")
 
     def __str__(self):
         return f"Receipt {self.receipt_number} | {self.date} | {self.paid_for} | {self.payer}"
 
     def clean(self):
         if self.amount is not None and self.amount <= 0:
-            raise ValidationError("Amount must be a positive value.")
+            raise ValidationError(_("Amount must be a positive value."))
 
     def save(self, *args, **kwargs):
         if not self.receipt_number:
@@ -129,31 +151,38 @@ class Receipt(models.Model):
 
 class Payment(models.Model):
     payment_number = models.IntegerField(
-        unique=True, blank=True, null=True, db_index=True
+        unique=True, blank=True, null=True, db_index=True, verbose_name=_("payment number"),
     )
-    date = models.DateField(auto_now_add=True)
-    paid_to = models.CharField(max_length=255, null=True)
+    date = models.DateField(auto_now_add=True, verbose_name=_("date"))
+    paid_to = models.CharField(max_length=255, null=True, verbose_name=_("paid to"))
     user = models.ForeignKey(
-        User, blank=True, null=True, on_delete=models.SET_NULL, related_name="payments"
+        User, blank=True, null=True, on_delete=models.SET_NULL, related_name="payments",
+        verbose_name=_("user"),
     )
     paid_for = models.ForeignKey(
-        PaymentAllocation, on_delete=models.SET_NULL, null=True
+        PaymentAllocation, on_delete=models.SET_NULL, null=True, verbose_name=_("paid for"),
     )
     paid_through = models.CharField(
-        max_length=20, choices=PaymentThrough.choices, default=PaymentThrough.CASH
+        max_length=20, choices=PaymentThrough.choices, default=PaymentThrough.CASH,
+        verbose_name=_("paid through"),
     )
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_("amount"))
     status = models.CharField(
-        max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING
+        max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING,
+        verbose_name=_("status"),
     )
-    paid_by = models.ForeignKey(Accountant, on_delete=models.SET_NULL, null=True)
+    paid_by = models.ForeignKey(Accountant, on_delete=models.SET_NULL, null=True, verbose_name=_("paid by"))
+
+    class Meta:
+        verbose_name = _("Payment")
+        verbose_name_plural = _("Payments")
 
     def __str__(self):
         return f"Payment {self.payment_number} | {self.date} | {self.paid_for} | {self.paid_to}"
 
     def clean(self):
         if self.amount is not None and self.amount <= 0:
-            raise ValidationError("Amount must be a positive value.")
+            raise ValidationError(_("Amount must be a positive value."))
 
     def save(self, *args, **kwargs):
         if not self.payment_number:
@@ -176,26 +205,30 @@ class Payment(models.Model):
 
 class PaymentRecord(models.Model):
     student = models.ForeignKey(
-        Student, related_name="payments", on_delete=models.CASCADE
+        Student, related_name="payments", on_delete=models.CASCADE, verbose_name=_("student"),
     )
     debt_record = models.ForeignKey(
-        "DebtRecord", related_name="payments", on_delete=models.CASCADE
+        "DebtRecord", related_name="payments", on_delete=models.CASCADE, verbose_name=_("debt record"),
     )
     receipt = models.ForeignKey(
-        "Receipt", related_name="payment_records", on_delete=models.CASCADE
+        "Receipt", related_name="payment_records", on_delete=models.CASCADE, verbose_name=_("receipt"),
     )
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    method = models.CharField(max_length=50, blank=True, null=True)  # e.g. cash, mpesa
-    reference = models.CharField(max_length=100, blank=True, null=True)
-    paid_on = models.DateTimeField(auto_now_add=True)
-    note = models.TextField(blank=True, null=True)
-    processed_by = models.ForeignKey(Accountant, on_delete=models.SET_NULL, null=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name=_("amount"))
+    method = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("method"))
+    reference = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("reference"))
+    paid_on = models.DateTimeField(auto_now_add=True, verbose_name=_("paid on"))
+    note = models.TextField(blank=True, null=True, verbose_name=_("note"))
+    processed_by = models.ForeignKey(Accountant, on_delete=models.SET_NULL, null=True, verbose_name=_("processed by"))
+
+    class Meta:
+        verbose_name = _("Payment Record")
+        verbose_name_plural = _("Payment Records")
 
     def save(self, *args, **kwargs):
         if self.amount <= 0:
-            raise ValidationError("Payment amount must be positive.")
+            raise ValidationError(_("Payment amount must be positive."))
         if self.debt_record.balance < self.amount:
-            raise ValidationError("Payment exceeds remaining balance for this debt.")
+            raise ValidationError(_("Payment exceeds remaining balance for this debt."))
 
         # Apply payment to debt
         self.debt_record.apply_payment(self.amount)

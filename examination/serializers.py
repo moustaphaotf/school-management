@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils.translation import gettext as _
 
 from academic.models import (
     AllocatedSubject,
@@ -94,12 +95,12 @@ class ExamSerializer(serializers.ModelSerializer):
         end = attrs.get("ends_date")
         if start and end and start > end:
             raise serializers.ValidationError(
-                {"ends_date": "ends_date must be on or after start_date."}
+                {"ends_date": _("ends_date must be on or after start_date.")}
             )
         out_of = attrs.get("out_of")
         if out_of is not None and out_of <= 0:
             raise serializers.ValidationError(
-                {"out_of": "out_of must be a positive integer."}
+                {"out_of": _("out_of must be a positive integer.")}
             )
         return attrs
 
@@ -147,9 +148,9 @@ class MarkSerializer(serializers.ModelSerializer):
             if points < 0 or points > exam.out_of:
                 raise serializers.ValidationError(
                     {
-                        "points_scored": (
-                            f"points_scored must be between 0 and {exam.out_of}."
-                        )
+                        "points_scored": _(
+                            "points_scored must be between 0 and %(out_of)s."
+                        ) % {"out_of": exam.out_of}
                     }
                 )
         return attrs
@@ -178,7 +179,8 @@ class BulkMarksSerializer(serializers.Serializer):
         for item in attrs["marks"]:
             if item["points_scored"] > exam.out_of:
                 raise serializers.ValidationError(
-                    f"points_scored {item['points_scored']} exceeds out_of {exam.out_of}"
+                    _("points_scored %(scored)s exceeds out_of %(out_of)s")
+                    % {"scored": item["points_scored"], "out_of": exam.out_of}
                 )
         return attrs
 

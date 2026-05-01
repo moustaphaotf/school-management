@@ -12,13 +12,13 @@ from .managers import CustomUserManager
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name="first name"
+        max_length=100, blank=True, null=True, verbose_name=_("first name")
     )
     middle_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name="middle name"
+        max_length=100, blank=True, null=True, verbose_name=_("middle name")
     )
     last_name = models.CharField(
-        max_length=100, blank=True, null=True, verbose_name="last name"
+        max_length=100, blank=True, null=True, verbose_name=_("last name")
     )
     phone_number = models.CharField(blank=True, null=True)
     email = models.EmailField(_("email address"), unique=True)
@@ -35,6 +35,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     class Meta:
+        verbose_name = _("User")
+        verbose_name_plural = _("Users")
         ordering = ["email"]
 
     def __str__(self):
@@ -48,31 +50,35 @@ class Accountant(models.Model):
         related_name="accountant",
         null=True,
         blank=True,
+        verbose_name=_("user"),
     )
-    username = models.CharField(unique=True, max_length=250, blank=True)
-    first_name = models.CharField(max_length=300, blank=True)
-    middle_name = models.CharField(max_length=100, blank=True)
-    last_name = models.CharField(max_length=300, blank=True)
-    gender = models.CharField(max_length=10, choices=GENDER_CHOICE, blank=True)
-    email = models.EmailField(blank=True, null=True)
-    empId = models.CharField(max_length=8, null=True, blank=True, unique=True)
-    tin_number = models.CharField(max_length=9, null=True, blank=True)
-    nssf_number = models.CharField(max_length=9, null=True, blank=True)
-    salary = models.IntegerField(blank=True, null=True)
-    unpaid_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    national_id = models.CharField(max_length=100, blank=True, null=True)
-    address = models.CharField(max_length=255, blank=True)
-    phone_number = models.CharField(max_length=150, blank=True)
+    username = models.CharField(unique=True, max_length=250, blank=True, verbose_name=_("username"))
+    first_name = models.CharField(max_length=300, blank=True, verbose_name=_("first name"))
+    middle_name = models.CharField(max_length=100, blank=True, verbose_name=_("middle name"))
+    last_name = models.CharField(max_length=300, blank=True, verbose_name=_("last name"))
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICE, blank=True, verbose_name=_("gender"))
+    email = models.EmailField(blank=True, null=True, verbose_name=_("email"))
+    empId = models.CharField(max_length=8, null=True, blank=True, unique=True, verbose_name=_("employee ID"))
+    tin_number = models.CharField(max_length=9, null=True, blank=True, verbose_name=_("TIN number"))
+    nssf_number = models.CharField(max_length=9, null=True, blank=True, verbose_name=_("NSSF number"))
+    salary = models.IntegerField(blank=True, null=True, verbose_name=_("salary"))
+    unpaid_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name=_("unpaid salary"))
+    national_id = models.CharField(max_length=100, blank=True, null=True, verbose_name=_("national ID"))
+    address = models.CharField(max_length=255, blank=True, verbose_name=_("address"))
+    phone_number = models.CharField(max_length=150, blank=True, verbose_name=_("phone number"))
     alt_email = models.EmailField(
         blank=True,
         null=True,
-        help_text="Personal Email apart from the one given by the school",
+        verbose_name=_("alternative email"),
+        help_text=_("Personal Email apart from the one given by the school"),
     )
-    date_of_birth = models.DateField(blank=True, null=True)
-    image = models.ImageField(upload_to="Employee_images", blank=True, null=True)
-    inactive = models.BooleanField(default=False)
+    date_of_birth = models.DateField(blank=True, null=True, verbose_name=_("date of birth"))
+    image = models.ImageField(upload_to="Employee_images", blank=True, null=True, verbose_name=_("image"))
+    inactive = models.BooleanField(default=False, verbose_name=_("inactive"))
 
     class Meta:
+        verbose_name = _("Accountant")
+        verbose_name_plural = _("Accountants")
         ordering = ("first_name", "last_name")
 
     def __str__(self):

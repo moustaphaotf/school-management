@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 from academic.models import Student
 from users.models import CustomUser, Accountant
@@ -12,43 +13,52 @@ class AttendanceStatus(models.Model):
     name = models.CharField(
         max_length=255,
         unique=True,
-        help_text='"Present" will not be saved but may show as an option for teachers.',
+        verbose_name=_("name"),
+        help_text=_('"Present" will not be saved but may show as an option for teachers.'),
     )
     code = models.CharField(
         max_length=10,
         unique=True,
-        help_text="Short code used on attendance reports. Example: 'A' might be the code for 'Absent'.",
+        verbose_name=_("code"),
+        help_text=_("Short code used on attendance reports. Example: 'A' might be the code for 'Absent'."),
     )
-    excused = models.BooleanField(default=False)
+    excused = models.BooleanField(default=False, verbose_name=_("excused"))
     absent = models.BooleanField(
-        default=False, help_text="Used for different types of absent statuses."
+        default=False, verbose_name=_("absent"),
+        help_text=_("Used for different types of absent statuses."),
     )
     late = models.BooleanField(
-        default=False, help_text="Used for tracking late statuses."
+        default=False, verbose_name=_("late"),
+        help_text=_("Used for tracking late statuses."),
     )
     half = models.BooleanField(
         default=False,
-        help_text="Indicates half-day attendance. Do not check absent, otherwise it will double count.",
+        verbose_name=_("half day"),
+        help_text=_("Indicates half-day attendance. Do not check absent, otherwise it will double count."),
     )
 
     class Meta:
-        verbose_name_plural = "Attendance Statuses"
+        verbose_name = _("Attendance Status")
+        verbose_name_plural = _("Attendance Statuses")
 
     def __str__(self):
         return self.name
 
 
 class TeachersAttendance(models.Model):
-    date = models.DateField(blank=True, null=True, validators=settings.DATE_VALIDATORS)
-    teacher = models.ForeignKey(Teacher, blank=True, on_delete=models.CASCADE)
-    time_in = models.TimeField(blank=True, null=True)
-    time_out = models.TimeField(blank=True, null=True)
+    date = models.DateField(blank=True, null=True, validators=settings.DATE_VALIDATORS, verbose_name=_("date"))
+    teacher = models.ForeignKey(Teacher, blank=True, on_delete=models.CASCADE, verbose_name=_("teacher"))
+    time_in = models.TimeField(blank=True, null=True, verbose_name=_("time in"))
+    time_out = models.TimeField(blank=True, null=True, verbose_name=_("time out"))
     status = models.ForeignKey(
-        AttendanceStatus, blank=True, null=True, on_delete=models.CASCADE
+        AttendanceStatus, blank=True, null=True, on_delete=models.CASCADE,
+        verbose_name=_("status"),
     )
-    notes = models.CharField(max_length=500, blank=True)
+    notes = models.CharField(max_length=500, blank=True, verbose_name=_("notes"))
 
     class Meta:
+        verbose_name = _("Teacher Attendance")
+        verbose_name_plural = _("Teacher Attendances")
         unique_together = (("teacher", "date", "status"),)
         ordering = ("-date", "teacher")
 
@@ -77,17 +87,21 @@ class TeachersAttendance(models.Model):
 
 
 class StudentAttendance(models.Model):
-    student = models.ForeignKey(Student, blank=True, on_delete=models.CASCADE)
-    date = models.DateField(blank=True, null=True, validators=settings.DATE_VALIDATORS)
+    student = models.ForeignKey(Student, blank=True, on_delete=models.CASCADE, verbose_name=_("student"))
+    date = models.DateField(blank=True, null=True, validators=settings.DATE_VALIDATORS, verbose_name=_("date"))
     ClassRoom = models.ForeignKey(
-        "academic.ClassRoom", on_delete=models.CASCADE, blank=True, null=True
+        "academic.ClassRoom", on_delete=models.CASCADE, blank=True, null=True,
+        verbose_name=_("classroom"),
     )
     status = models.ForeignKey(
-        AttendanceStatus, blank=True, null=True, on_delete=models.CASCADE
+        AttendanceStatus, blank=True, null=True, on_delete=models.CASCADE,
+        verbose_name=_("status"),
     )
-    notes = models.CharField(max_length=500, blank=True)
+    notes = models.CharField(max_length=500, blank=True, verbose_name=_("notes"))
 
     class Meta:
+        verbose_name = _("Student Attendance")
+        verbose_name_plural = _("Student Attendances")
         unique_together = (("student", "date", "status"),)
         ordering = ("-date", "student")
 
@@ -112,18 +126,21 @@ class StudentAttendance(models.Model):
 
 
 class PeriodAttendance(models.Model):
-    student = models.ForeignKey(Student, blank=True, on_delete=models.CASCADE)
-    date = models.DateField(blank=True, null=True, validators=settings.DATE_VALIDATORS)
+    student = models.ForeignKey(Student, blank=True, on_delete=models.CASCADE, verbose_name=_("student"))
+    date = models.DateField(blank=True, null=True, validators=settings.DATE_VALIDATORS, verbose_name=_("date"))
     period = (
-        models.IntegerField()
+        models.IntegerField(verbose_name=_("period"))
     )  # e.g., 1 for the first period, 2 for the second period, etc.
     status = models.ForeignKey(
-        AttendanceStatus, blank=True, null=True, on_delete=models.CASCADE
+        AttendanceStatus, blank=True, null=True, on_delete=models.CASCADE,
+        verbose_name=_("status"),
     )
-    reason_for_absence = models.CharField(max_length=500, blank=True, null=True)
-    notes = models.CharField(max_length=500, blank=True)
+    reason_for_absence = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("reason for absence"))
+    notes = models.CharField(max_length=500, blank=True, verbose_name=_("notes"))
 
     class Meta:
+        verbose_name = _("Period Attendance")
+        verbose_name_plural = _("Period Attendances")
         unique_together = (("student", "date", "period"),)
         ordering = ("date", "student", "period")
 
